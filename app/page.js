@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, useMotionValue, useAnimationFrame } from 'framer-motion';
 
-function DriftingCircle() {
+function DriftingCircle({ index, total }) {
   const [mounted, setMounted] = useState(false);
   const [init, setInit] = useState(null);
   const x = useMotionValue(0);
@@ -13,8 +13,13 @@ function DriftingCircle() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const size = 450 + Math.random() * 150; // Large circles: 450-600px
-    const posX = Math.random() * (window.innerWidth - size);
+
+    // Divide screen into sections to spread circles out
+    const sectionWidth = window.innerWidth / total;
+    const sectionX = sectionWidth * index;
+    const posX = sectionX + Math.random() * (sectionWidth - size);
     const posY = Math.random() * (window.innerHeight - size);
+
     const velX = (Math.random() - 0.5) * 0.15; // Very slow movement
     const velY = (Math.random() - 0.5) * 0.15;
 
@@ -23,7 +28,7 @@ function DriftingCircle() {
     x.set(posX);
     y.set(posY);
     setMounted(true);
-  }, []);
+  }, [index, total]);
 
   useAnimationFrame(() => {
     if (!init) return;
@@ -52,7 +57,7 @@ function DriftingCircle() {
 
   return (
     <motion.div
-      className="absolute rounded-full border border-black opacity-20"
+      className="absolute rounded-full border border-black opacity-30"
       style={{
         width: init.size,
         height: init.size,
@@ -110,7 +115,7 @@ export default function Home() {
       {/* Floating circles background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         {Array.from({ length: 3 }).map((_, i) => (
-          <DriftingCircle key={i} />
+          <DriftingCircle key={i} index={i} total={3} />
         ))}
       </div>
 
