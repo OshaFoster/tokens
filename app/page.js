@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, useMotionValue, useAnimationFrame } from 'framer-motion';
 
-function DriftingCircle({ index, total }) {
+function DriftingCircle({ index, total, color = 'black', onPositionUpdate, initialPosition }) {
   const [mounted, setMounted] = useState(false);
   const [init, setInit] = useState(null);
   const x = useMotionValue(0);
@@ -12,13 +12,24 @@ function DriftingCircle({ index, total }) {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const size = 450 + Math.random() * 150; // Large circles: 450-600px
 
-    // Divide screen into sections to spread circles out
-    const sectionWidth = window.innerWidth / total;
-    const sectionX = sectionWidth * index;
-    const posX = sectionX + Math.random() * (sectionWidth - size);
-    const posY = Math.random() * (window.innerHeight - size);
+    let size, posX, posY;
+
+    if (initialPosition) {
+      // Use saved position
+      size = initialPosition.size;
+      posX = initialPosition.x;
+      posY = initialPosition.y;
+    } else {
+      // Generate new position
+      size = 450 + Math.random() * 150; // Large circles: 450-600px
+
+      // Divide screen into sections to spread circles out
+      const sectionWidth = window.innerWidth / total;
+      const sectionX = sectionWidth * index;
+      posX = sectionX + Math.random() * (sectionWidth - size);
+      posY = Math.random() * (window.innerHeight - size);
+    }
 
     const velX = (Math.random() - 0.5) * 0.15; // Very slow movement
     const velY = (Math.random() - 0.5) * 0.15;
@@ -28,7 +39,7 @@ function DriftingCircle({ index, total }) {
     x.set(posX);
     y.set(posY);
     setMounted(true);
-  }, [index, total]);
+  }, [index, total, initialPosition]);
 
   useAnimationFrame(() => {
     if (!init) return;
@@ -51,13 +62,21 @@ function DriftingCircle({ index, total }) {
 
     x.set(newX);
     y.set(newY);
+
+    // Update parent with current position
+    if (onPositionUpdate) {
+      onPositionUpdate(index, { x: newX, y: newY, size: init.size });
+    }
   });
 
   if (!mounted || !init) return null;
 
   return (
     <motion.div
-      className="absolute rounded-full border border-black opacity-30"
+      className="absolute rounded-full border opacity-30"
+      initial={{ borderColor: '#000000' }}
+      animate={{ borderColor: color === 'white' ? '#ffffff' : '#000000' }}
+      transition={{ duration: 0.5 }}
       style={{
         width: init.size,
         height: init.size,
@@ -75,6 +94,7 @@ export default function Home() {
   const [animateAbout, setAnimateAbout] = useState(false);
   const [showDonate, setShowDonate] = useState(false);
   const [animateDonate, setAnimateDonate] = useState(false);
+  const circlePositions = useRef({});
 
   const stories = [
     {
@@ -108,6 +128,10 @@ export default function Home() {
     }, 300);
   };
 
+  const updateCirclePosition = (index, position) => {
+    circlePositions.current[index] = position;
+  };
+
   return (
     <div className={`min-h-screen w-full flex flex-col transition-colors duration-700 ${
       isTransitioning || activeStory ? 'bg-black' : 'bg-white'
@@ -115,7 +139,7 @@ export default function Home() {
       {/* Floating circles background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         {Array.from({ length: 3 }).map((_, i) => (
-          <DriftingCircle key={i} index={i} total={3} />
+          <DriftingCircle key={i} index={i} total={3} onPositionUpdate={updateCirclePosition} />
         ))}
       </div>
 
@@ -191,7 +215,20 @@ export default function Home() {
         <div className={`fixed inset-0 flex items-center justify-center p-8 transition-opacity duration-700 ${
           activeStory ? 'opacity-100' : 'opacity-0'
         }`}>
-          <div className="bg-white p-16 max-w-3xl w-full rounded-lg shadow-2xl">
+          {/* White floating circles for story view */}
+          <div className="fixed inset-0 pointer-events-none overflow-hidden">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <DriftingCircle
+                key={i}
+                index={i}
+                total={3}
+                color="white"
+                initialPosition={circlePositions.current[i]}
+              />
+            ))}
+          </div>
+
+          <div className="bg-white p-16 max-w-3xl w-full rounded-lg shadow-2xl relative z-10">
             <button
               onClick={handleClose}
               className="mb-8 text-gray-500 hover:text-black transition-colors"
