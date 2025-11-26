@@ -1,6 +1,67 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { motion, useMotionValue, useAnimationFrame } from 'framer-motion';
+
+function DriftingCircle() {
+  const [mounted, setMounted] = useState(false);
+  const [init, setInit] = useState(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const velocity = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const size = 450 + Math.random() * 150; // Large circles: 450-600px
+    const posX = Math.random() * (window.innerWidth - size);
+    const posY = Math.random() * (window.innerHeight - size);
+    const velX = (Math.random() - 0.5) * 0.15; // Very slow movement
+    const velY = (Math.random() - 0.5) * 0.15;
+
+    setInit({ size, posX, posY });
+    velocity.current = { x: velX, y: velY };
+    x.set(posX);
+    y.set(posY);
+    setMounted(true);
+  }, []);
+
+  useAnimationFrame(() => {
+    if (!init) return;
+
+    const maxX = window.innerWidth - init.size;
+    const maxY = window.innerHeight - init.size;
+
+    let newX = x.get() + velocity.current.x;
+    let newY = y.get() + velocity.current.y;
+
+    if (newX <= 0 || newX >= maxX) {
+      velocity.current.x *= -1;
+      newX = Math.max(0, Math.min(maxX, newX));
+    }
+
+    if (newY <= 0 || newY >= maxY) {
+      velocity.current.y *= -1;
+      newY = Math.max(0, Math.min(maxY, newY));
+    }
+
+    x.set(newX);
+    y.set(newY);
+  });
+
+  if (!mounted || !init) return null;
+
+  return (
+    <motion.div
+      className="absolute rounded-full border border-black opacity-20"
+      style={{
+        width: init.size,
+        height: init.size,
+        x,
+        y,
+      }}
+    />
+  );
+}
 
 export default function Home() {
   const [activeStory, setActiveStory] = useState(null);
@@ -46,6 +107,13 @@ export default function Home() {
     <div className={`min-h-screen w-full flex flex-col transition-colors duration-700 ${
       isTransitioning || activeStory ? 'bg-black' : 'bg-white'
     }`}>
+      {/* Floating circles background */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <DriftingCircle key={i} />
+        ))}
+      </div>
+
       {/* Home view */}
       <div className={`transition-opacity duration-500 ${
         isTransitioning || activeStory ? 'opacity-0 pointer-events-none' : 'opacity-100'
@@ -90,23 +158,25 @@ export default function Home() {
 
         {/* Main content area */}
         <div className="min-h-screen flex items-center justify-center p-8">
-          <div className="flex gap-12 justify-center items-center">
-            {/* Story cards */}
-            {stories.map((story) => (
-              <button
-                key={story.id}
-                onClick={() => handleStoryClick(story.id)}
-                className="flex flex-row items-center gap-4 group cursor-pointer"
-              >
-                <div className="w-[50px] h-[50px] rounded-full border border-black relative overflow-hidden flex items-center justify-center">
-                  <div className="absolute bottom-0 left-0 right-0 h-0 bg-black rounded-full transition-all duration-500 ease-out group-hover:h-full"></div>
-                  <svg className="relative z-10 w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </div>
-                <p className="text-base" style={{ fontFamily: 'Chillax' }}>{story.title}</p>
-              </button>
-            ))}
+          <div className="bg-white border border-black rounded-lg relative z-10" style={{ padding: '60px' }}>
+            <div className="flex gap-12 justify-center items-center">
+              {/* Story cards */}
+              {stories.map((story) => (
+                <button
+                  key={story.id}
+                  onClick={() => handleStoryClick(story.id)}
+                  className="flex flex-row items-center gap-4 group cursor-pointer"
+                >
+                  <div className="w-[50px] h-[50px] rounded-full border border-black relative overflow-hidden flex items-center justify-center">
+                    <div className="absolute bottom-0 left-0 right-0 h-0 bg-black rounded-full transition-all duration-500 ease-out group-hover:h-full"></div>
+                    <svg className="relative z-10 w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </div>
+                  <p className="text-base" style={{ fontFamily: 'Chillax' }}>{story.title}</p>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
