@@ -95,6 +95,9 @@ export default function Home() {
   const [showDonate, setShowDonate] = useState(false);
   const [animateDonate, setAnimateDonate] = useState(false);
   const circlePositions = useRef({});
+  const [paginatedPages, setPaginatedPages] = useState([]);
+  const measureRef = useRef(null);
+  const contentRef = useRef(null);
 
   // Load stories from API
   useEffect(() => {
@@ -104,44 +107,67 @@ export default function Home() {
       .catch(err => console.error('Failed to load stories:', err));
   }, []);
 
-  const paginateStory = (story) => {
-    if (!story) return [];
+  // Paginate story based on actual rendered height
+  const paginateStoryByHeight = (story) => {
+    if (!story || !measureRef.current || !contentRef.current) return [];
 
     const pages = [];
-    const minCharsPerPage = 800;
-    const maxCharsPerPage = 1200;
+    // Use the actual content area height
+    const containerHeight = contentRef.current.clientHeight;
 
     story.chapters.forEach((chapter, chapterIndex) => {
-      // Split content into paragraphs
       const paragraphs = chapter.content.split('\n\n');
       let currentPageParagraphs = [];
-      let currentPageLength = 0;
+      let isFirstPageOfChapter = pages.length === 0 || pages[pages.length - 1].chapterIndex !== chapterIndex;
 
-      paragraphs.forEach((paragraph) => {
-        const paragraphLength = paragraph.length;
-        const newLength = currentPageLength + paragraphLength + 2;
+      paragraphs.forEach((paragraph, pIndex) => {
+        // Add paragraph to test
+        currentPageParagraphs.push(paragraph);
 
-        // Only start a new page if we're over min AND adding this would exceed max
-        if (currentPageLength >= minCharsPerPage && newLength > maxCharsPerPage && currentPageParagraphs.length > 0) {
+        // Build test content with chapter title if needed
+        let testContent = '';
+        if (isFirstPageOfChapter) {
+          testContent = `<h3 style="font-family: Chillax; font-size: 1.5rem; line-height: 1.2; margin-bottom: 32px; color: #1f2937;">${chapter.title}</h3>`;
+        }
+
+        // Build paragraphs with proper spacing, but no margin on the last one
+        const paragraphsHtml = currentPageParagraphs
+          .map((p, i) => {
+            const isLast = i === currentPageParagraphs.length - 1;
+            const marginBottom = isLast ? '0' : '1.5rem';
+            return `<p style="font-family: Inconsolata, monospace; font-size: 1.125rem; line-height: 1.5; color: #374151; margin-bottom: ${marginBottom};">${p}</p>`;
+          })
+          .join('');
+
+        measureRef.current.innerHTML = testContent + paragraphsHtml;
+        const height = measureRef.current.scrollHeight;
+
+        // If it exceeds container height and we have more than one paragraph, start new page
+        if (height > containerHeight && currentPageParagraphs.length > 1) {
+          // Remove the last paragraph that caused overflow
+          currentPageParagraphs.pop();
+
+          // Save current page
           pages.push({
             content: currentPageParagraphs.join('\n\n'),
             chapterTitle: chapter.title,
-            chapterIndex: chapterIndex
+            chapterIndex: chapterIndex,
+            isFirstPageOfChapter: isFirstPageOfChapter
           });
+
+          // Start new page with the paragraph that didn't fit
           currentPageParagraphs = [paragraph];
-          currentPageLength = paragraphLength;
-        } else {
-          currentPageParagraphs.push(paragraph);
-          currentPageLength = newLength;
+          isFirstPageOfChapter = false;
         }
       });
 
-      // Save remaining paragraphs
+      // Save remaining content
       if (currentPageParagraphs.length > 0) {
         pages.push({
           content: currentPageParagraphs.join('\n\n'),
           chapterTitle: chapter.title,
-          chapterIndex: chapterIndex
+          chapterIndex: chapterIndex,
+          isFirstPageOfChapter: isFirstPageOfChapter
         });
       }
     });
@@ -169,9 +195,7 @@ export default function Home() {
   };
 
   const handleNextPage = () => {
-    const story = stories.find(s => s.id === activeStory);
-    const pages = paginateStory(story);
-    if (currentPage < pages.length - 1) {
+    if (currentPage < paginatedPages.length - 1) {
       setCurrentPage(currentPage + 1);
     }
   };
@@ -181,6 +205,37 @@ export default function Home() {
       setCurrentPage(currentPage - 1);
     }
   };
+
+  // Paginate story when it's opened or window resizes
+  useEffect(() => {
+    if (!activeStory || !measureRef.current || !contentRef.current) return;
+
+    // Small delay to ensure the modal is fully rendered
+    const timeoutId = setTimeout(() => {
+      const story = stories.find(s => s.id === activeStory);
+      if (story) {
+        const pages = paginateStoryByHeight(story);
+        setPaginatedPages(pages);
+      }
+    }, 100);
+
+    // Re-paginate on window resize
+    const handleResize = () => {
+      if (activeStory && contentRef.current) {
+        const story = stories.find(s => s.id === activeStory);
+        if (story) {
+          const pages = paginateStoryByHeight(story);
+          setPaginatedPages(pages);
+        }
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [activeStory, stories]);
 
   const updateCirclePosition = (index, position) => {
     circlePositions.current[index] = position;
@@ -346,8 +401,7 @@ export default function Home() {
           <div className="max-w-2xl w-full rounded-lg shadow-2xl relative z-10 overflow-hidden flex flex-col pointer-events-auto" style={{ backgroundColor: '#f5f5f5', height: '90vh', maxHeight: '90vh' }}>
             {(() => {
               const story = stories.find(s => s.id === activeStory);
-              const pages = paginateStory(story);
-              const currentPageData = pages[currentPage] || {};
+              const currentPageData = paginatedPages[currentPage] || {};
 
               return (
                 <>
@@ -365,24 +419,34 @@ export default function Home() {
                     </div>
 
                     {/* Subtle chapter title for pages 2+ */}
-                    {currentPage > 0 && pages[currentPage - 1]?.chapterIndex === currentPageData.chapterIndex && (
+                    {currentPage > 0 && paginatedPages[currentPage - 1]?.chapterIndex === currentPageData.chapterIndex && (
                       <p className="text-xs text-gray-400 pb-4" style={{ fontFamily: 'Chillax' }}>
                         {currentPageData.chapterTitle}
                       </p>
                     )}
                   </div>
 
-                  <div className="flex-1 overflow-y-auto relative" style={{ padding: '16px 24px 0 24px' }}>
+                  <div
+                    ref={contentRef}
+                    className="flex-1 overflow-hidden relative"
+                    style={{ padding: '16px 24px 0 24px' }}
+                  >
                     {/* First page of chapter: Large chapter title */}
-                    {(currentPage === 0 || pages[currentPage - 1]?.chapterIndex !== currentPageData.chapterIndex) && (
-                      <h3 className="text-2xl text-gray-800" style={{ fontFamily: 'Chillax', marginBottom: '32px' }}>
+                    {currentPageData.isFirstPageOfChapter && (
+                      <h3 className="text-2xl text-gray-800" style={{ fontFamily: 'Chillax', marginBottom: '32px', lineHeight: '1.2' }}>
                         {currentPageData.chapterTitle}
                       </h3>
                     )}
 
-                    <p className="text-lg leading-normal text-gray-700 whitespace-pre-line" style={{ fontFamily: 'Inconsolata, monospace' }}>
-                      {currentPageData.content}
-                    </p>
+                    {/* Render paragraphs with proper spacing */}
+                    {currentPageData.content && currentPageData.content.split('\n\n').map((paragraph, idx, arr) => {
+                      const isLast = idx === arr.length - 1;
+                      return (
+                        <p key={idx} className="text-lg text-gray-700" style={{ fontFamily: 'Inconsolata, monospace', lineHeight: '1.5', marginBottom: isLast ? '0' : '1.5rem' }}>
+                          {paragraph}
+                        </p>
+                      );
+                    })}
                   </div>
                   <div className="flex-shrink-0 flex items-center justify-between" style={{ padding: '12px 24px' }}>
                     <button
@@ -394,11 +458,11 @@ export default function Home() {
                       ← Previous
                     </button>
                     <span className="text-sm text-gray-500">
-                      {currentPage + 1} / {pages.length}
+                      {currentPage + 1} / {paginatedPages.length}
                     </span>
                     <button
                       onClick={handleNextPage}
-                      disabled={currentPage === pages.length - 1}
+                      disabled={currentPage === paginatedPages.length - 1}
                       className="text-gray-600 hover:text-black transition-colors disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
                       style={{ padding: '8px 12px' }}
                     >
@@ -474,6 +538,21 @@ export default function Home() {
           <p className="text-lg text-white relative z-10">@Osha-Foster</p>
         </div>
       )}
+
+      {/* Hidden measurement div - matches content area dimensions */}
+      <div
+        ref={measureRef}
+        className="fixed pointer-events-none"
+        style={{
+          visibility: 'hidden',
+          position: 'fixed',
+          top: '-9999px',
+          left: '0',
+          width: 'calc(min(42rem, 100vw - 2rem) - 48px)', // max-w-2xl minus padding
+          padding: '16px 0 0 0',
+          overflow: 'hidden'
+        }}
+      />
     </div>
   );
 }
