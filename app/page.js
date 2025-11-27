@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
 import { motion, useMotionValue, useAnimationFrame } from 'framer-motion';
 
 function DriftingCircle({ index, total, color = 'black', onPositionUpdate, initialPosition }) {
@@ -84,8 +83,6 @@ function DriftingCircle({ index, total, color = 'black', onPositionUpdate, initi
 }
 
 export default function Home() {
-  const router = useRouter();
-  const pathname = usePathname();
   const [activeStory, setActiveStory] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -189,9 +186,6 @@ export default function Home() {
 
   const handleStoryClick = (storyId) => {
     setIsTransitioning(true);
-    const story = stories.find(s => s.id === storyId);
-    const urlTitle = story.title.replace(/\s+/g, '-');
-    router.push(`/${urlTitle}`, { scroll: false });
     setTimeout(() => {
       setActiveStory(storyId);
       setCurrentPage(0);
@@ -199,12 +193,10 @@ export default function Home() {
   };
 
   const handleClose = () => {
-    router.push('/', { scroll: false });
+    setActiveStory(null);
     setTimeout(() => {
-      setActiveStory(null);
-      setCurrentPage(0);
       setIsTransitioning(false);
-    }, 500);
+    }, 300);
   };
 
   const handleNextPage = () => {
@@ -225,21 +217,6 @@ export default function Home() {
     circlePositions.current[index] = position;
   };
 
-  // Check URL for story on mount
-  useEffect(() => {
-    const path = pathname.replace('/', '');
-    if (path) {
-      const story = stories.find(s => s.title.replace(/\s+/g, '-') === path);
-      if (story) {
-        setIsTransitioning(true);
-        setTimeout(() => {
-          setActiveStory(story.id);
-          setCurrentPage(0);
-        }, 500);
-      }
-    }
-  }, [pathname]);
-
   return (
     <div className={`min-h-screen w-full flex flex-col transition-colors duration-700 ${
       isTransitioning || activeStory ? 'bg-black' : 'bg-white'
@@ -257,7 +234,9 @@ export default function Home() {
       </div>
 
       {/* Home view */}
-      <div className={activeStory ? 'pointer-events-none' : ''}>
+      <div className={`transition-opacity duration-500 ${
+        isTransitioning || activeStory ? 'opacity-0 pointer-events-none' : 'opacity-100'
+      }`}>
         {/* Header with tokens branding */}
         <div className="absolute top-8 left-8">
           <div className="relative inline-block">
