@@ -318,9 +318,9 @@ export default function Home() {
         isTransitioning || activeStory ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}>
         {/* Header with tokens branding */}
-        <div className="absolute top-8 left-8">
+        <div className="absolute top-4 left-4 sm:top-6 sm:left-6 md:top-8 md:left-8">
           <div className="relative inline-block">
-            <h1 className="text-[12rem] tracking-tight leading-none" style={{ fontFamily: 'Chillax' }}>tokens</h1>
+            <h1 className="text-[4rem] sm:text-[5rem] md:text-[7rem] lg:text-[9rem] xl:text-[12rem] tracking-tight leading-none" style={{ fontFamily: 'Chillax' }}>tokens</h1>
             <button
               onMouseEnter={() => {
                 setShowAbout(true);
@@ -330,7 +330,7 @@ export default function Home() {
                 setShowAbout(false);
                 setAnimateAbout(false);
               }}
-              className="absolute bottom-6 right-[-40px] w-[20px] h-[20px] rounded-full bg-black cursor-pointer hover:scale-150 transition-transform duration-500 hover:duration-300 flex items-center justify-center group"
+              className="absolute bottom-2 right-[-28px] sm:bottom-4 sm:right-[-32px] md:bottom-6 md:right-[-40px] w-[18px] h-[18px] md:w-[20px] md:h-[20px] rounded-full bg-black cursor-pointer hover:scale-150 transition-transform duration-500 hover:duration-300 flex items-center justify-center group"
             >
               <span className="text-white text-xs font-medium group-hover:scale-[0.667] transition-transform duration-500 group-hover:duration-300">i</span>
             </button>
@@ -344,8 +344,8 @@ export default function Home() {
                 setShowAbout(false);
                 setAnimateAbout(false);
               }}
-              className="absolute bottom-[-115px] right-[-315px] bg-white w-72 rounded-lg overflow-hidden animate-slide-down"
-              style={{ padding: '24px' }}
+              className="absolute bottom-[-115px] right-[-205px] lg:right-[-315px] bg-white w-48 lg:w-72 rounded-lg overflow-hidden animate-slide-down"
+              style={{ padding: '16px' }}
             >
               <div className={`absolute inset-0 bg-black rounded-lg ${animateAbout ? 'animate-fill-top-down' : 'opacity-0'}`}></div>
               <p className="text-base leading-relaxed relative z-10 text-white">
@@ -356,9 +356,9 @@ export default function Home() {
         </div>
 
         {/* Main content area */}
-        <div className="min-h-screen flex items-start justify-center p-8" style={{ paddingTop: '40vh' }}>
+        <div className="min-h-screen flex items-center justify-center p-8">
           <div className="bg-white border border-black rounded-lg relative z-10" style={{ padding: '45px' }}>
-            <div className="grid grid-cols-3 gap-12">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-12">
               {/* Story cards */}
               {stories.map((story) => (
                 <button
@@ -382,7 +382,7 @@ export default function Home() {
 
       {/* Story view */}
       {activeStory && (
-        <div className={`fixed inset-0 flex items-center justify-center p-4 transition-opacity duration-700 pointer-events-none ${
+        <div className={`fixed inset-0 flex items-center justify-center px-8 py-4 transition-opacity duration-700 pointer-events-none ${
           activeStory ? 'opacity-100' : 'opacity-0'
         }`}>
           {/* White floating circles for story view */}
@@ -477,7 +477,7 @@ export default function Home() {
       )}
 
       {/* Donate button */}
-      <div className="fixed bottom-8 right-8 group cursor-pointer z-50" onClick={() => {
+      <div className="fixed bottom-20 md:bottom-8 right-8 group cursor-pointer z-50" onClick={() => {
         if (!showDonate) {
           setShowDonate(true);
           setTimeout(() => setAnimateDonate(true), 10);
