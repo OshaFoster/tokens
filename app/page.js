@@ -143,11 +143,8 @@ export default function Home() {
         measureRef.current.innerHTML = testContent + paragraphsHtml;
         const height = measureRef.current.scrollHeight;
 
-        // Allow slight overflow (10%) to fill pages better
-        const maxAllowedHeight = containerHeight * 1.1;
-
         // If it exceeds container height and we have more than one paragraph, start new page
-        if (height > maxAllowedHeight && currentPageParagraphs.length > 1) {
+        if (height > containerHeight && currentPageParagraphs.length > 1) {
           // Remove the last paragraph that caused overflow
           currentPageParagraphs.pop();
 
