@@ -358,7 +358,7 @@ export default function Home() {
         {/* Main content area */}
         <div
           className="min-h-screen flex items-center justify-center p-8"
-          style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))' }}
+          style={{ paddingBottom: 'calc(3rem + env(safe-area-inset-bottom, 0px))' }}
         >
           <div className="bg-white border border-black rounded-lg relative z-10 story-grid-box">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-12">
@@ -484,7 +484,7 @@ export default function Home() {
       {/* Donate button */}
       <div
         className={`fixed right-4 md:right-8 group cursor-pointer z-50 ${activeStory ? 'hidden md:block' : ''}`}
-        style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
+        style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px) - 10px)' }}
         onClick={() => {
         if (!showDonate) {
           setShowDonate(true);
@@ -507,8 +507,8 @@ export default function Home() {
               ? 'opacity-0 duration-300 pointer-events-none'
               : 'opacity-100 duration-300 group-hover:opacity-0'
           }`} style={{
-            backgroundColor: 'blue',
-            border: '1px solid blue'
+            backgroundColor: activeStory ? 'white' : 'black',
+            border: activeStory ? '1px solid white' : '1px solid black'
           }}>
             <span className={`text-xl leading-none font-normal ${activeStory ? 'text-black' : 'text-white'}`}>$</span>
           </div>
@@ -521,8 +521,8 @@ export default function Home() {
                 : 'opacity-0 duration-300 pointer-events-none'
             }`}
             style={{
-              backgroundColor: 'blue',
-              border: '1px solid blue'
+              backgroundColor: activeStory ? 'white' : 'black',
+              border: activeStory ? '1px solid white' : '1px solid black'
             }}
             onClick={(e) => {
               e.stopPropagation();
