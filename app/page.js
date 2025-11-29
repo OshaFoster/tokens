@@ -335,8 +335,20 @@ export default function Home() {
         {/* Header with tokens branding */}
         <div className="absolute top-4 left-4 sm:top-6 sm:left-6 md:top-8 md:left-8">
           <div className="relative inline-block">
-            <h1 className="text-[4rem] sm:text-[5rem] md:text-[7rem] lg:text-[9rem] xl:text-[12rem] tracking-tight leading-none" style={{ fontFamily: 'Chillax' }}>tokens</h1>
-            <button
+            <h1 className="text-[4rem] sm:text-[5rem] md:text-[7rem] lg:text-[9rem] xl:text-[12rem] tracking-tight leading-none" style={{ fontFamily: 'Chillax' }}>
+              {"tokens".split("").map((letter, index) => (
+                <motion.span
+                  key={index}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.4, delay: (5 - index) * 0.08, ease: "easeOut" }}
+                  style={{ display: 'inline-block' }}
+                >
+                  {letter}
+                </motion.span>
+              ))}
+            </h1>
+            <motion.button
               onClick={() => {
                 if (!showAbout) {
                   setShowAbout(true);
@@ -355,9 +367,12 @@ export default function Home() {
                 setAnimateAbout(false);
               }}
               className="absolute bottom-2 right-[-28px] sm:bottom-4 sm:right-[-32px] md:bottom-6 md:right-[-40px] w-[18px] h-[18px] md:w-[20px] md:h-[20px] rounded-full bg-black cursor-pointer hover:scale-150 transition-transform duration-500 hover:duration-300 flex items-center justify-center group"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.65, ease: "easeOut" }}
             >
               <span className="text-white text-xs font-medium group-hover:scale-[0.667] transition-transform duration-500 group-hover:duration-300">i</span>
-            </button>
+            </motion.button>
           </div>
 
           {/* About text box */}
@@ -383,14 +398,22 @@ export default function Home() {
         <div className="min-h-screen flex items-center justify-center p-8">
           {stories.length > 0 && (
             <div className="main-grid-container">
-              <div className="bg-white border border-black rounded-lg relative z-10 story-grid-box">
+              <motion.div
+                className="bg-white border border-black rounded-lg relative z-10 story-grid-box"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4, delay: 1.0, ease: "easeOut" }}
+              >
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-12">
                 {/* Story cards */}
                 {stories.map((story, index) => (
-                  <button
+                  <motion.button
                     key={story.id}
                     onClick={() => handleStoryClick(story.id)}
                     className="flex flex-row items-center gap-4 group cursor-pointer"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.4, delay: 1.2 + (index * 0.1), ease: "easeOut" }}
                   >
                     <div className="w-[50px] h-[50px] rounded-full border border-black relative overflow-hidden flex items-center justify-center">
                       <div className={`absolute bottom-0 left-0 right-0 bg-black rounded-full transition-all ease-out group-hover:h-full ${
@@ -402,10 +425,10 @@ export default function Home() {
                       </svg>
                     </div>
                     <p className="text-base" style={{ fontFamily: 'Chillax' }}>{story.title}</p>
-                  </button>
+                  </motion.button>
                 ))}
               </div>
-            </div>
+            </motion.div>
             </div>
           )}
         </div>
@@ -509,14 +532,18 @@ export default function Home() {
       )}
 
       {/* Donate button */}
-      <div
+      <motion.div
         className={`fixed bottom-4 md:bottom-8 right-4 md:right-8 group cursor-pointer z-50 ${activeStory ? 'hidden md:block' : ''}`}
         onClick={() => {
         if (!showDonate) {
           setShowDonate(true);
           setTimeout(() => setAnimateDonate(true), 10);
         }
-      }}>
+      }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, delay: 1.8, ease: "easeOut" }}
+      >
         <div className="relative w-[140px] h-[50px] md:h-[60px]">
           {/* Oval donate button (shows on hover when popup is closed) */}
           <div className={`absolute right-0 top-0 w-full h-full bg-white border border-black rounded-full flex items-center justify-center transition-all ${
@@ -559,7 +586,7 @@ export default function Home() {
             <span className={`text-lg md:text-xl leading-none font-normal ${activeStory ? 'text-black' : 'text-white'}`}>✕</span>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Donate popup */}
       {showDonate && (
