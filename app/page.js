@@ -504,8 +504,8 @@ export default function Home() {
               ? 'opacity-0 duration-300 pointer-events-none'
               : 'opacity-100 duration-300 group-hover:opacity-0'
           }`} style={{
-            backgroundColor: activeStory ? 'white' : 'black',
-            border: activeStory ? '1px solid white' : '1px solid black'
+            backgroundColor: 'blue',
+            border: '1px solid blue'
           }}>
             <span className={`text-xl leading-none font-normal ${activeStory ? 'text-black' : 'text-white'}`}>$</span>
           </div>
@@ -518,8 +518,8 @@ export default function Home() {
                 : 'opacity-0 duration-300 pointer-events-none'
             }`}
             style={{
-              backgroundColor: activeStory ? 'white' : 'black',
-              border: activeStory ? '1px solid white' : '1px solid black'
+              backgroundColor: 'blue',
+              border: '1px solid blue'
             }}
             onClick={(e) => {
               e.stopPropagation();
