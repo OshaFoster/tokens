@@ -178,20 +178,28 @@ export default function Home() {
 
   const handleStoryClick = (storyId) => {
     setPressedButton(storyId);
-    setIsTransitioning(true);
+    setPaginatedPages([]);
     const story = stories.find(s => s.id === storyId);
     const urlTitle = story.title.replace(/\s+/g, '-');
     window.history.pushState({}, '', `/${urlTitle}`);
+
+    // Let button fill complete, then start transition
+    setTimeout(() => {
+      setIsTransitioning(true);
+    }, 350);
+
+    // Show modal after button fill + transition
     setTimeout(() => {
       setActiveStory(storyId);
       setCurrentPage(0);
       setPressedButton(null);
-    }, 500);
+    }, 900);
   };
 
   const handleClose = () => {
     window.history.pushState({}, '', '/');
     setActiveStory(null);
+    setPaginatedPages([]);
     setTimeout(() => {
       setIsTransitioning(false);
     }, 300);
@@ -360,29 +368,33 @@ export default function Home() {
 
         {/* Main content area */}
         <div className="min-h-screen flex items-center justify-center p-8">
-          <div className="main-grid-container">
-            <div className="bg-white border border-black rounded-lg relative z-10 story-grid-box">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-12">
-              {/* Story cards */}
-              {stories.map((story, index) => (
-                <button
-                  key={story.id}
-                  onClick={() => handleStoryClick(story.id)}
-                  className="flex flex-row items-center gap-4 group cursor-pointer"
-                >
-                  <div className="w-[50px] h-[50px] rounded-full border border-black relative overflow-hidden flex items-center justify-center">
-                    <div className={`absolute bottom-0 left-0 right-0 bg-black rounded-full transition-all duration-500 ease-out group-hover:h-full ${pressedButton === story.id ? 'h-full' : 'h-0'}`}></div>
-                    {/* Arrow for desktop */}
-                    <svg className="relative z-10 w-5 h-5 text-white hidden lg:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </div>
-                  <p className="text-base" style={{ fontFamily: 'Chillax' }}>{story.title}</p>
-                </button>
-              ))}
+          {stories.length > 0 && (
+            <div className="main-grid-container">
+              <div className="bg-white border border-black rounded-lg relative z-10 story-grid-box">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-12">
+                {/* Story cards */}
+                {stories.map((story, index) => (
+                  <button
+                    key={story.id}
+                    onClick={() => handleStoryClick(story.id)}
+                    className="flex flex-row items-center gap-4 group cursor-pointer"
+                  >
+                    <div className="w-[50px] h-[50px] rounded-full border border-black relative overflow-hidden flex items-center justify-center">
+                      <div className={`absolute bottom-0 left-0 right-0 bg-black rounded-full transition-all ease-out group-hover:h-full ${
+                        pressedButton === story.id ? 'h-full duration-[400ms]' : 'h-0 duration-500'
+                      }`}></div>
+                      {/* Arrow for desktop */}
+                      <svg className="relative z-10 w-5 h-5 text-white hidden lg:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      </svg>
+                    </div>
+                    <p className="text-base" style={{ fontFamily: 'Chillax' }}>{story.title}</p>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
