@@ -356,9 +356,9 @@ export default function Home() {
         </div>
 
         {/* Main content area */}
-        <div className="min-h-screen flex items-start lg:items-center justify-center p-4 lg:p-8" style={{ paddingTop: 'max(25vh, 120px)' }}>
-          <div className="bg-white border border-black rounded-lg relative z-10 p-6 lg:p-[45px]">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 lg:gap-12">
+        <div className="min-h-screen flex items-start lg:items-center justify-center p-8" style={{ paddingTop: '20vh' }}>
+          <div className="bg-white border border-black rounded-lg relative z-10" style={{ padding: '45px' }}>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-12">
               {/* Story cards */}
               {stories.map((story, index) => (
                 <button
@@ -479,7 +479,7 @@ export default function Home() {
       )}
 
       {/* Donate button */}
-      <div className="fixed bottom-12 md:bottom-8 right-4 md:right-8 group cursor-pointer z-50" onClick={() => {
+      <div className="fixed bottom-6 md:bottom-8 right-4 md:right-8 group cursor-pointer z-50" onClick={() => {
         if (!showDonate) {
           setShowDonate(true);
           setTimeout(() => setAnimateDonate(true), 10);
