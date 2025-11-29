@@ -298,7 +298,7 @@ export default function Home() {
   }, [stories]);
 
   return (
-    <div className={`min-h-screen w-full flex flex-col transition-colors duration-700 ${
+    <div className={`min-h-screen w-full flex flex-col transition-colors duration-700 overflow-hidden ${
       isTransitioning || activeStory ? 'bg-black' : 'bg-white'
     }`}>
       {/* Floating circles background */}
@@ -477,7 +477,7 @@ export default function Home() {
       )}
 
       {/* Donate button */}
-      <div className="fixed bottom-20 md:bottom-8 right-8 group cursor-pointer z-50" onClick={() => {
+      <div className="fixed bottom-12 md:bottom-8 right-4 md:right-8 group cursor-pointer z-50" onClick={() => {
         if (!showDonate) {
           setShowDonate(true);
           setTimeout(() => setAnimateDonate(true), 10);
