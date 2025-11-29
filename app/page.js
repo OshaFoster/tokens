@@ -94,6 +94,7 @@ export default function Home() {
   const [animateAbout, setAnimateAbout] = useState(false);
   const [showDonate, setShowDonate] = useState(false);
   const [animateDonate, setAnimateDonate] = useState(false);
+  const [pressedButton, setPressedButton] = useState(null);
   const circlePositions = useRef({});
   const [paginatedPages, setPaginatedPages] = useState([]);
   const measureRef = useRef(null);
@@ -176,6 +177,7 @@ export default function Home() {
   };
 
   const handleStoryClick = (storyId) => {
+    setPressedButton(storyId);
     setIsTransitioning(true);
     const story = stories.find(s => s.id === storyId);
     const urlTitle = story.title.replace(/\s+/g, '-');
@@ -183,6 +185,7 @@ export default function Home() {
     setTimeout(() => {
       setActiveStory(storyId);
       setCurrentPage(0);
+      setPressedButton(null);
     }, 500);
   };
 
@@ -357,29 +360,18 @@ export default function Home() {
 
         {/* Main content area */}
         <div className="min-h-screen flex items-center justify-center p-8">
-          <style>{`
-            .main-grid-container {
-              margin-top: -60px;
-            }
-            @media (min-width: 1024px) {
-              .main-grid-container {
-                margin-top: 0;
-              }
-            }
-          `}</style>
-          <div className="main-grid-container" style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-          <div className="bg-white border border-black rounded-lg relative z-10 story-grid-box">
+          <div className="main-grid-container">
+            <div className="bg-white border border-black rounded-lg relative z-10 story-grid-box">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-12">
               {/* Story cards */}
               {stories.map((story, index) => (
                 <button
                   key={story.id}
                   onClick={() => handleStoryClick(story.id)}
-                  className="flex flex-row items-center gap-4 group cursor-pointer opacity-0 animate-fade-in"
-                  style={{ animationDelay: `${index * 100}ms` }}
+                  className="flex flex-row items-center gap-4 group cursor-pointer"
                 >
                   <div className="w-[50px] h-[50px] rounded-full border border-black relative overflow-hidden flex items-center justify-center">
-                    <div className="absolute bottom-0 left-0 right-0 h-0 bg-black rounded-full transition-all duration-500 ease-out group-hover:h-full"></div>
+                    <div className={`absolute bottom-0 left-0 right-0 bg-black rounded-full transition-all duration-500 ease-out group-hover:h-full ${pressedButton === story.id ? 'h-full' : 'h-0'}`}></div>
                     {/* Arrow for desktop */}
                     <svg className="relative z-10 w-5 h-5 text-white hidden lg:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
