@@ -113,8 +113,8 @@ export default function Home() {
     if (!story || !measureRef.current || !contentRef.current) return [];
 
     const pages = [];
-    // Use the actual content area height with safety buffer for footer
-    const containerHeight = contentRef.current.clientHeight - 15;
+    // Use the actual content area height with minimal safety buffer
+    const containerHeight = contentRef.current.clientHeight - 5;
 
     story.chapters.forEach((chapter, chapterIndex) => {
       const paragraphs = chapter.content.split('\n\n');
