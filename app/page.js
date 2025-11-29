@@ -356,7 +356,10 @@ export default function Home() {
         </div>
 
         {/* Main content area */}
-        <div className="min-h-screen flex items-center justify-center p-8">
+        <div
+          className="min-h-screen flex items-center justify-center p-8"
+          style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))' }}
+        >
           <div className="bg-white border border-black rounded-lg relative z-10 story-grid-box">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-12">
               {/* Story cards */}
