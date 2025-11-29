@@ -337,6 +337,15 @@ export default function Home() {
           <div className="relative inline-block">
             <h1 className="text-[4rem] sm:text-[5rem] md:text-[7rem] lg:text-[9rem] xl:text-[12rem] tracking-tight leading-none" style={{ fontFamily: 'Chillax' }}>tokens</h1>
             <button
+              onClick={() => {
+                if (!showAbout) {
+                  setShowAbout(true);
+                  setTimeout(() => setAnimateAbout(true), 10);
+                } else {
+                  setShowAbout(false);
+                  setAnimateAbout(false);
+                }
+              }}
               onMouseEnter={() => {
                 setShowAbout(true);
                 setTimeout(() => setAnimateAbout(true), 10);
@@ -359,8 +368,8 @@ export default function Home() {
                 setShowAbout(false);
                 setAnimateAbout(false);
               }}
-              className="fixed top-[85px] left-1/2 -translate-x-1/2 bg-white w-64 lg:w-72 rounded-lg overflow-hidden animate-slide-down z-50"
-              style={{ padding: '16px' }}
+              className="fixed top-[85px] left-1/2 -translate-x-1/2 lg:absolute lg:top-auto lg:left-auto lg:translate-x-0 lg:bottom-[-115px] lg:right-[-315px] bg-white w-64 lg:w-72 rounded-lg overflow-hidden animate-slide-down z-50"
+              style={{ padding: '24px' }}
             >
               <div className={`absolute inset-0 bg-black rounded-lg ${animateAbout ? 'animate-fill-top-down' : 'opacity-0'}`}></div>
               <p className="text-base leading-relaxed relative z-10 text-white">
