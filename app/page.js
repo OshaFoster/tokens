@@ -143,8 +143,11 @@ export default function Home() {
         measureRef.current.innerHTML = testContent + paragraphsHtml;
         const height = measureRef.current.scrollHeight;
 
+        // Allow slight overflow (10%) to fill pages better
+        const maxAllowedHeight = containerHeight * 1.1;
+
         // If it exceeds container height and we have more than one paragraph, start new page
-        if (height > containerHeight && currentPageParagraphs.length > 1) {
+        if (height > maxAllowedHeight && currentPageParagraphs.length > 1) {
           // Remove the last paragraph that caused overflow
           currentPageParagraphs.pop();
 
@@ -221,23 +224,27 @@ export default function Home() {
   useEffect(() => {
     if (!activeStory || !measureRef.current || !contentRef.current) return;
 
-    // Small delay to ensure the modal is fully rendered
+    // Wait for layout to complete before measuring
     const timeoutId = setTimeout(() => {
-      const story = stories.find(s => s.id === activeStory);
-      if (story) {
-        const pages = paginateStoryByHeight(story);
-        setPaginatedPages(pages);
-      }
-    }, 100);
-
-    // Re-paginate on window resize
-    const handleResize = () => {
-      if (activeStory && contentRef.current) {
+      requestAnimationFrame(() => {
         const story = stories.find(s => s.id === activeStory);
         if (story) {
           const pages = paginateStoryByHeight(story);
           setPaginatedPages(pages);
         }
+      });
+    }, 150);
+
+    // Re-paginate on window resize
+    const handleResize = () => {
+      if (activeStory && contentRef.current) {
+        requestAnimationFrame(() => {
+          const story = stories.find(s => s.id === activeStory);
+          if (story) {
+            const pages = paginateStoryByHeight(story);
+            setPaginatedPages(pages);
+          }
+        });
       }
     };
 
@@ -412,6 +419,7 @@ export default function Home() {
                 total={3}
                 color="white"
                 initialPosition={circlePositions.current[i]}
+                onPositionUpdate={updateCirclePosition}
               />
             ))}
           </div>
