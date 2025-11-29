@@ -14,12 +14,22 @@
   box-sizing: border-box;
 }
 
+html, body {
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  overscroll-behavior: none;
+}
+
 body {
   background: #ffffff;
   color: #000000;
   font-family: 'Chillax', var(--font-inter), "Inter", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  touch-action: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 @keyframes fill-center {
