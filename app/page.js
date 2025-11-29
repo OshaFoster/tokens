@@ -491,7 +491,7 @@ export default function Home() {
           setTimeout(() => setAnimateDonate(true), 10);
         }
       }}>
-        <div className="relative w-[140px] h-[60px]">
+        <div className="relative w-[140px] h-[50px] md:h-[60px]">
           {/* Oval donate button (shows on hover when popup is closed) */}
           <div className={`absolute right-0 top-0 w-full h-full bg-white border border-black rounded-full flex items-center justify-center transition-all ${
             !showDonate
@@ -502,7 +502,7 @@ export default function Home() {
           </div>
 
           {/* Dollar circle (shows when popup is closed) */}
-          <div className={`absolute right-0 top-0 w-[60px] h-[60px] rounded-full flex items-center justify-center transition-all ${
+          <div className={`absolute right-0 top-0 w-[50px] h-[50px] md:w-[60px] md:h-[60px] rounded-full flex items-center justify-center transition-all ${
             showDonate
               ? 'opacity-0 duration-300 pointer-events-none'
               : 'opacity-100 duration-300 group-hover:opacity-0'
@@ -510,12 +510,12 @@ export default function Home() {
             backgroundColor: activeStory ? 'white' : 'black',
             border: activeStory ? '1px solid white' : '1px solid black'
           }}>
-            <span className={`text-xl leading-none font-normal ${activeStory ? 'text-black' : 'text-white'}`}>$</span>
+            <span className={`text-lg md:text-xl leading-none font-normal ${activeStory ? 'text-black' : 'text-white'}`}>$</span>
           </div>
 
           {/* X circle (shows when popup is open) */}
           <div
-            className={`absolute right-0 top-0 w-[60px] h-[60px] rounded-full flex items-center justify-center cursor-pointer transition-all ${
+            className={`absolute right-0 top-0 w-[50px] h-[50px] md:w-[60px] md:h-[60px] rounded-full flex items-center justify-center cursor-pointer transition-all ${
               showDonate
                 ? 'opacity-100 duration-500 delay-200'
                 : 'opacity-0 duration-300 pointer-events-none'
@@ -530,7 +530,7 @@ export default function Home() {
               setAnimateDonate(false);
             }}
           >
-            <span className={`text-xl leading-none font-normal ${activeStory ? 'text-black' : 'text-white'}`}>✕</span>
+            <span className={`text-lg md:text-xl leading-none font-normal ${activeStory ? 'text-black' : 'text-white'}`}>✕</span>
           </div>
         </div>
       </div>
