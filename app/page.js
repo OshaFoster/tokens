@@ -356,9 +356,9 @@ export default function Home() {
         </div>
 
         {/* Main content area */}
-        <div className="min-h-screen flex items-center justify-center p-8">
-          <div className="bg-white border border-black rounded-lg relative z-10" style={{ padding: '45px' }}>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-12">
+        <div className="min-h-screen flex items-start lg:items-center justify-center p-4 lg:p-8" style={{ paddingTop: 'max(25vh, 120px)' }}>
+          <div className="bg-white border border-black rounded-lg relative z-10 p-6 lg:p-[45px]">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 lg:gap-12">
               {/* Story cards */}
               {stories.map((story, index) => (
                 <button
