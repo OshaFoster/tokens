@@ -74,7 +74,7 @@ She poured tea and glanced at the feed. A robot raised its hand to blow a kiss. 
 
 Husband was working.
 
-## a person
+## a smile
 
 Husband scaled quickly once she released it. No marketing push, no sales pitch—the demand was already there. The reports filled with transactions from places she'd never see: women funding small businesses, paying off debts, buying themselves time. It was efficient, impersonal, and everywhere.
 
