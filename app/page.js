@@ -344,7 +344,7 @@ export default function Home() {
                 setShowAbout(false);
                 setAnimateAbout(false);
               }}
-              className="absolute bottom-[-115px] right-[-205px] lg:right-[-315px] bg-white w-48 lg:w-72 rounded-lg overflow-hidden animate-slide-down"
+              className="fixed top-[85px] left-1/2 -translate-x-1/2 bg-white w-64 lg:w-72 rounded-lg overflow-hidden animate-slide-down z-50"
               style={{ padding: '16px' }}
             >
               <div className={`absolute inset-0 bg-black rounded-lg ${animateAbout ? 'animate-fill-top-down' : 'opacity-0'}`}></div>
@@ -358,7 +358,10 @@ export default function Home() {
         {/* Main content area */}
         <div
           className="min-h-screen flex items-center justify-center p-8"
-          style={{ paddingBottom: 'calc(3rem + env(safe-area-inset-bottom, 0px))' }}
+          style={{
+            paddingTop: 'calc(15vh + 4rem)',
+            paddingBottom: 'calc(15vh + 4rem + env(safe-area-inset-bottom, 0px))'
+          }}
         >
           <div className="bg-white border border-black rounded-lg relative z-10 story-grid-box">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-12">
@@ -387,7 +390,7 @@ export default function Home() {
 
       {/* Story view */}
       {activeStory && (
-        <div className={`fixed inset-0 flex items-center justify-center px-8 py-4 transition-opacity duration-700 pointer-events-none ${
+        <div className={`fixed inset-0 flex items-center justify-center px-6 py-6 md:px-8 md:py-4 transition-opacity duration-700 pointer-events-none ${
           activeStory ? 'opacity-100' : 'opacity-0'
         }`}>
           {/* White floating circles for story view */}
@@ -403,7 +406,7 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="max-w-2xl w-full rounded-lg shadow-2xl relative z-10 overflow-hidden flex flex-col pointer-events-auto" style={{ backgroundColor: '#f5f5f5', height: '90vh', maxHeight: '90vh' }}>
+          <div className="max-w-2xl w-[calc(100%-2rem)] md:w-full rounded-lg shadow-2xl relative z-10 overflow-hidden flex flex-col pointer-events-auto" style={{ backgroundColor: '#f5f5f5', height: '85vh', maxHeight: '85vh' }}>
             {(() => {
               const story = stories.find(s => s.id === activeStory);
               const currentPageData = paginatedPages[currentPage] || {};
@@ -483,8 +486,7 @@ export default function Home() {
 
       {/* Donate button */}
       <div
-        className={`fixed right-4 md:right-8 group cursor-pointer z-50 ${activeStory ? 'hidden md:block' : ''}`}
-        style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px) - 10px)' }}
+        className={`fixed bottom-6 md:bottom-8 right-4 md:right-8 group cursor-pointer z-50 ${activeStory ? 'hidden md:block' : ''}`}
         onClick={() => {
         if (!showDonate) {
           setShowDonate(true);
@@ -537,7 +539,7 @@ export default function Home() {
 
       {/* Donate popup */}
       {showDonate && (
-        <div className="fixed bottom-24 right-8 bg-white rounded-lg shadow-lg w-[320px] animate-slide-up overflow-hidden border border-white z-50" style={{ padding: '24px' }}>
+        <div className="fixed bottom-20 md:bottom-24 right-8 bg-white rounded-lg shadow-lg w-[320px] animate-slide-up overflow-hidden border border-white z-50" style={{ padding: '24px' }}>
           <div className={`absolute inset-0 bg-black rounded-lg ${animateDonate ? 'animate-fill-bottom-up' : 'opacity-0'}`}></div>
           <p className="text-base text-white mb-8 leading-relaxed relative z-10">
             donations are really appreciated
