@@ -492,7 +492,7 @@ export default function Home() {
 
       {/* Donate button */}
       <div
-        className={`fixed bottom-6 md:bottom-8 right-4 md:right-8 group cursor-pointer z-50 ${activeStory ? 'hidden md:block' : ''}`}
+        className={`fixed bottom-4 md:bottom-8 right-4 md:right-8 group cursor-pointer z-50 ${activeStory ? 'hidden md:block' : ''}`}
         onClick={() => {
         if (!showDonate) {
           setShowDonate(true);
