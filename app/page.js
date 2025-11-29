@@ -356,13 +356,18 @@ export default function Home() {
         </div>
 
         {/* Main content area */}
-        <div
-          className="min-h-screen flex items-center justify-center p-8"
-          style={{
-            paddingTop: 'calc(15vh + 4rem)',
-            paddingBottom: 'calc(15vh + 4rem + env(safe-area-inset-bottom, 0px))'
-          }}
-        >
+        <div className="min-h-screen flex items-center justify-center p-8">
+          <style>{`
+            .main-grid-container {
+              margin-top: -60px;
+            }
+            @media (min-width: 1024px) {
+              .main-grid-container {
+                margin-top: 0;
+              }
+            }
+          `}</style>
+          <div className="main-grid-container" style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
           <div className="bg-white border border-black rounded-lg relative z-10 story-grid-box">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-12">
               {/* Story cards */}
@@ -384,6 +389,7 @@ export default function Home() {
                 </button>
               ))}
             </div>
+          </div>
           </div>
         </div>
       </div>
