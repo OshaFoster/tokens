@@ -20,6 +20,7 @@ html, body {
   width: 100%;
   position: fixed;
   overscroll-behavior: none;
+  padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
 }
 
 body {
@@ -114,4 +115,14 @@ body {
 
 .animate-fade-in {
   animation: fade-in 0.5s ease-out forwards;
+}
+
+.story-grid-box {
+  padding: 40px;
+}
+
+@media (min-width: 1024px) {
+  .story-grid-box {
+    padding: 45px;
+  }
 }
