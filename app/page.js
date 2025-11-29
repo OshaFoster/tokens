@@ -113,8 +113,8 @@ export default function Home() {
     if (!story || !measureRef.current || !contentRef.current) return [];
 
     const pages = [];
-    // Use the actual content area height
-    const containerHeight = contentRef.current.clientHeight;
+    // Use the actual content area height with safety buffer for footer
+    const containerHeight = contentRef.current.clientHeight - 15;
 
     story.chapters.forEach((chapter, chapterIndex) => {
       const paragraphs = chapter.content.split('\n\n');
@@ -135,7 +135,7 @@ export default function Home() {
         const paragraphsHtml = currentPageParagraphs
           .map((p, i) => {
             const isLast = i === currentPageParagraphs.length - 1;
-            const marginBottom = isLast ? '0' : '1.5rem';
+            const marginBottom = isLast ? '0' : '1.25rem';
             return `<p style="font-family: Inconsolata, monospace; font-size: 1.125rem; line-height: 1.5; color: #374151; margin-bottom: ${marginBottom};">${p}</p>`;
           })
           .join('');
@@ -143,11 +143,8 @@ export default function Home() {
         measureRef.current.innerHTML = testContent + paragraphsHtml;
         const height = measureRef.current.scrollHeight;
 
-        // Allow small tolerance to fill pages better without overflow
-        const maxAllowedHeight = containerHeight * 1.03;
-
         // If it exceeds container height and we have more than one paragraph, start new page
-        if (height > maxAllowedHeight && currentPageParagraphs.length > 1) {
+        if (height > containerHeight && currentPageParagraphs.length > 1) {
           // Remove the last paragraph that caused overflow
           currentPageParagraphs.pop();
 
@@ -477,7 +474,7 @@ export default function Home() {
                     {currentPageData.content && currentPageData.content.split('\n\n').map((paragraph, idx, arr) => {
                       const isLast = idx === arr.length - 1;
                       return (
-                        <p key={idx} className="text-lg text-gray-700" style={{ fontFamily: 'Inconsolata, monospace', lineHeight: '1.5', marginBottom: isLast ? '0' : '1.5rem' }}>
+                        <p key={idx} className="text-lg text-gray-700" style={{ fontFamily: 'Inconsolata, monospace', lineHeight: '1.5', marginBottom: isLast ? '0' : '1.25rem' }}>
                           {paragraph}
                         </p>
                       );
