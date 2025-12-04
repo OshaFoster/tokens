@@ -99,6 +99,8 @@ export default function Home() {
   const [paginatedPages, setPaginatedPages] = useState([]);
   const measureRef = useRef(null);
   const contentRef = useRef(null);
+  const touchStartX = useRef(null);
+  const touchEndX = useRef(null);
 
   // Load stories from API
   useEffect(() => {
@@ -125,10 +127,14 @@ export default function Home() {
         // Add paragraph to test
         currentPageParagraphs.push(paragraph);
 
-        // Build test content with chapter title if needed
+        // Build test content with story title and/or chapter title if needed
         let testContent = '';
+        const isFirstPageOfStory = pages.length === 0;
+        if (isFirstPageOfStory) {
+          testContent = `<h2 style="font-family: Chillax; font-size: 2rem; line-height: 1.2; margin-bottom: 40px; color: #1f2937; text-align: center;">${story.storyTitle || story.title}</h2>`;
+        }
         if (isFirstPageOfChapter) {
-          testContent = `<h3 style="font-family: Chillax; font-size: 1.5rem; line-height: 1.2; margin-bottom: 32px; color: #1f2937;">${chapter.title}</h3>`;
+          testContent += `<h3 style="font-family: Chillax; font-size: 1.5rem; line-height: 1.2; margin-bottom: 32px; color: #1f2937;">${chapter.title}</h3>`;
         }
 
         // Build paragraphs with proper spacing, but no margin on the last one
@@ -148,12 +154,17 @@ export default function Home() {
           // Remove the last paragraph that caused overflow
           currentPageParagraphs.pop();
 
+          // Check if this is the first page of the story before saving
+          const isThisFirstPage = pages.length === 0;
+
           // Save current page
           pages.push({
             content: currentPageParagraphs.join('\n\n'),
             chapterTitle: chapter.title,
             chapterIndex: chapterIndex,
-            isFirstPageOfChapter: isFirstPageOfChapter
+            isFirstPageOfChapter: isFirstPageOfChapter,
+            isFirstPageOfStory: isThisFirstPage,
+            storyTitle: story.storyTitle || story.title
           });
 
           // Start new page with the paragraph that didn't fit
@@ -164,11 +175,14 @@ export default function Home() {
 
       // Save remaining content
       if (currentPageParagraphs.length > 0) {
+        const isThisFirstPage = pages.length === 0;
         pages.push({
           content: currentPageParagraphs.join('\n\n'),
           chapterTitle: chapter.title,
           chapterIndex: chapterIndex,
-          isFirstPageOfChapter: isFirstPageOfChapter
+          isFirstPageOfChapter: isFirstPageOfChapter,
+          isFirstPageOfStory: isThisFirstPage,
+          storyTitle: story.storyTitle || story.title
         });
       }
     });
@@ -215,6 +229,36 @@ export default function Home() {
     if (currentPage > 0) {
       setCurrentPage(currentPage - 1);
     }
+  };
+
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+
+    const distance = touchStartX.current - touchEndX.current;
+    const minSwipeDistance = 50;
+
+    if (distance > minSwipeDistance) {
+      // Swiped left - go to next page
+      if (currentPage < paginatedPages.length - 1) {
+        handleNextPage();
+      } else {
+        setCurrentPage(0); // Loop back to start on last page
+      }
+    } else if (distance < -minSwipeDistance) {
+      // Swiped right - go to previous page
+      handlePrevPage();
+    }
+
+    touchStartX.current = null;
+    touchEndX.current = null;
   };
 
   // Paginate story when it's opened or window resizes
@@ -453,7 +497,13 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="max-w-2xl w-[calc(100%-2rem)] md:w-full rounded-lg shadow-2xl relative z-10 overflow-hidden flex flex-col pointer-events-auto" style={{ backgroundColor: '#f5f5f5', height: '85vh', maxHeight: '85vh' }}>
+          <div
+            className="max-w-2xl w-[calc(100%-2rem)] md:w-full rounded-lg shadow-2xl relative z-10 overflow-hidden flex flex-col pointer-events-auto"
+            style={{ backgroundColor: '#f5f5f5', height: '85vh', maxHeight: '85vh' }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
             {(() => {
               const story = stories.find(s => s.id === activeStory);
               const currentPageData = paginatedPages[currentPage] || {};
@@ -462,21 +512,26 @@ export default function Home() {
                 <>
                   <div className="flex-shrink-0" style={{ padding: '24px 24px 0 24px' }}>
                     <div className="flex items-center justify-between mb-2">
-                      <button
+                      {/* <button
                         onClick={handleClose}
                         className="text-gray-500 hover:text-black transition-colors"
                       >
                         ← Back
-                      </button>
-                      <h2 className="text-base text-gray-600" style={{ fontFamily: 'Chillax' }}>
+                      </button> */}
+                      <div></div>
+                      <h2 className={`text-base ${currentPage === 0 ? 'text-transparent' : 'text-gray-600'}`} style={{ fontFamily: 'Chillax' }}>
                         {story?.title}
                       </h2>
                     </div>
 
                     {/* Subtle chapter title for pages 2+ */}
-                    {currentPage > 0 && paginatedPages[currentPage - 1]?.chapterIndex === currentPageData.chapterIndex && (
+                    {currentPage > 0 && paginatedPages[currentPage - 1]?.chapterIndex === currentPageData.chapterIndex ? (
                       <p className="text-xs text-gray-400 pb-4" style={{ fontFamily: 'Chillax' }}>
                         {currentPageData.chapterTitle}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-transparent pb-4" style={{ fontFamily: 'Chillax' }}>
+                        placeholder
                       </p>
                     )}
                   </div>
@@ -486,6 +541,13 @@ export default function Home() {
                     className="flex-1 overflow-hidden relative"
                     style={{ padding: '16px 24px 0 24px' }}
                   >
+                    {/* First page of story: Book title */}
+                    {currentPageData.isFirstPageOfStory && (
+                      <h2 className="text-3xl text-gray-800 text-center" style={{ fontFamily: 'Chillax', marginBottom: '40px', lineHeight: '1.2' }}>
+                        {currentPageData.storyTitle}
+                      </h2>
+                    )}
+
                     {/* First page of chapter: Large chapter title */}
                     {currentPageData.isFirstPageOfChapter && (
                       <h3 className="text-2xl text-gray-800" style={{ fontFamily: 'Chillax', marginBottom: '32px', lineHeight: '1.2' }}>
@@ -516,12 +578,17 @@ export default function Home() {
                       {currentPage + 1} / {paginatedPages.length}
                     </span>
                     <button
-                      onClick={handleNextPage}
-                      disabled={currentPage === paginatedPages.length - 1}
-                      className="text-gray-600 hover:text-black transition-colors disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-gray-400"
+                      onClick={() => {
+                        if (currentPage === paginatedPages.length - 1) {
+                          setCurrentPage(0);
+                        } else {
+                          handleNextPage();
+                        }
+                      }}
+                      className="text-gray-600 hover:text-black transition-colors cursor-pointer focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-gray-400"
                       style={{ padding: '8px 12px' }}
                     >
-                      Next →
+                      {currentPage === paginatedPages.length - 1 ? '↻ Start' : 'Next →'}
                     </button>
                   </div>
                 </>
