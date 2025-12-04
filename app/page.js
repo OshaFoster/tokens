@@ -115,8 +115,8 @@ export default function Home() {
     if (!story || !measureRef.current || !contentRef.current) return [];
 
     const pages = [];
-    // Use the actual content area height with buffer to prevent text cutoff
-    const containerHeight = contentRef.current.clientHeight - 40;
+    // Use the actual content area height with buffer to prevent text cutoff (more for mobile)
+    const containerHeight = contentRef.current.clientHeight - 60;
 
     story.chapters.forEach((chapter, chapterIndex) => {
       const paragraphs = chapter.content.split('\n\n');
