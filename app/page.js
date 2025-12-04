@@ -115,16 +115,18 @@ export default function Home() {
     if (!story || !measureRef.current || !contentRef.current) return [];
 
     const pages = [];
-    // Use the actual content area height with minimal safety buffer
-    const containerHeight = contentRef.current.clientHeight - 5;
+    // Use the actual content area height with buffer to prevent text cutoff
+    const containerHeight = contentRef.current.clientHeight - 40;
 
     story.chapters.forEach((chapter, chapterIndex) => {
       const paragraphs = chapter.content.split('\n\n');
       let currentPageParagraphs = [];
       let isFirstPageOfChapter = pages.length === 0 || pages[pages.length - 1].chapterIndex !== chapterIndex;
 
-      paragraphs.forEach((paragraph, pIndex) => {
-        // Add paragraph to test
+      for (let pIndex = 0; pIndex < paragraphs.length; pIndex++) {
+        let paragraph = paragraphs[pIndex];
+
+        // Try to add the paragraph
         currentPageParagraphs.push(paragraph);
 
         // Build test content with story title and/or chapter title if needed
@@ -137,7 +139,7 @@ export default function Home() {
           testContent += `<h3 style="font-family: Chillax; font-size: 1.5rem; line-height: 1.2; margin-bottom: 32px; color: #1f2937;">${chapter.title}</h3>`;
         }
 
-        // Build paragraphs with proper spacing, but no margin on the last one
+        // Build paragraphs with proper spacing
         const paragraphsHtml = currentPageParagraphs
           .map((p, i) => {
             const isLast = i === currentPageParagraphs.length - 1;
@@ -149,29 +151,92 @@ export default function Home() {
         measureRef.current.innerHTML = testContent + paragraphsHtml;
         const height = measureRef.current.scrollHeight;
 
-        // If it exceeds container height and we have more than one paragraph, start new page
-        if (height > containerHeight && currentPageParagraphs.length > 1) {
-          // Remove the last paragraph that caused overflow
-          currentPageParagraphs.pop();
+        // If it exceeds container height
+        if (height > containerHeight) {
+          // Remove the paragraph that caused overflow
+          const overflowParagraph = currentPageParagraphs.pop();
 
-          // Check if this is the first page of the story before saving
-          const isThisFirstPage = pages.length === 0;
+          // Try to split the overflow paragraph and fill the remaining space
+          const sentences = overflowParagraph.match(/[^.!?]+[.!?]+/g) || [overflowParagraph];
 
-          // Save current page
-          pages.push({
-            content: currentPageParagraphs.join('\n\n'),
-            chapterTitle: chapter.title,
-            chapterIndex: chapterIndex,
-            isFirstPageOfChapter: isFirstPageOfChapter,
-            isFirstPageOfStory: isThisFirstPage,
-            storyTitle: story.storyTitle || story.title
-          });
+          if (sentences.length > 1 && currentPageParagraphs.length > 0) {
+            // Try to fit some sentences on the current page
+            let fitSentences = [];
 
-          // Start new page with the paragraph that didn't fit
-          currentPageParagraphs = [paragraph];
-          isFirstPageOfChapter = false;
+            for (let i = 0; i < sentences.length; i++) {
+              fitSentences.push(sentences[i].trim());
+
+              // Build test with current paragraphs plus partial new paragraph
+              const testParagraphsHtml = currentPageParagraphs
+                .map((p, idx) => {
+                  return `<p style="font-family: Inconsolata, monospace; font-size: 1.125rem; line-height: 1.5; color: #374151; margin-bottom: 1.25rem;">${p}</p>`;
+                })
+                .join('');
+
+              const partialParaHtml = `<p style="font-family: Inconsolata, monospace; font-size: 1.125rem; line-height: 1.5; color: #374151; margin-bottom: 0;">${fitSentences.join(' ')}</p>`;
+
+              measureRef.current.innerHTML = testContent + testParagraphsHtml + partialParaHtml;
+
+              if (measureRef.current.scrollHeight > containerHeight && fitSentences.length > 1) {
+                // This sentence doesn't fit, remove it
+                fitSentences.pop();
+                break;
+              }
+            }
+
+            if (fitSentences.length > 0) {
+              // Add the partial paragraph to current page
+              currentPageParagraphs.push(fitSentences.join(' '));
+
+              // Save the page
+              const isThisFirstPage = pages.length === 0;
+              pages.push({
+                content: currentPageParagraphs.join('\n\n'),
+                chapterTitle: chapter.title,
+                chapterIndex: chapterIndex,
+                isFirstPageOfChapter: isFirstPageOfChapter,
+                isFirstPageOfStory: isThisFirstPage,
+                storyTitle: story.storyTitle || story.title
+              });
+
+              // Start new page with remaining sentences
+              currentPageParagraphs = [sentences.slice(fitSentences.length).join(' ').trim()];
+              isFirstPageOfChapter = false;
+            } else {
+              // Couldn't fit any sentences, save current page and move paragraph to next
+              const isThisFirstPage = pages.length === 0;
+              pages.push({
+                content: currentPageParagraphs.join('\n\n'),
+                chapterTitle: chapter.title,
+                chapterIndex: chapterIndex,
+                isFirstPageOfChapter: isFirstPageOfChapter,
+                isFirstPageOfStory: isThisFirstPage,
+                storyTitle: story.storyTitle || story.title
+              });
+
+              currentPageParagraphs = [overflowParagraph];
+              isFirstPageOfChapter = false;
+            }
+          } else {
+            // Can't split or no existing content, just save what we have and continue
+            if (currentPageParagraphs.length > 0) {
+              const isThisFirstPage = pages.length === 0;
+              pages.push({
+                content: currentPageParagraphs.join('\n\n'),
+                chapterTitle: chapter.title,
+                chapterIndex: chapterIndex,
+                isFirstPageOfChapter: isFirstPageOfChapter,
+                isFirstPageOfStory: isThisFirstPage,
+                storyTitle: story.storyTitle || story.title
+              });
+
+              isFirstPageOfChapter = false;
+            }
+
+            currentPageParagraphs = [overflowParagraph];
+          }
         }
-      });
+      }
 
       // Save remaining content
       if (currentPageParagraphs.length > 0) {
@@ -511,28 +576,13 @@ export default function Home() {
               return (
                 <>
                   <div className="flex-shrink-0" style={{ padding: '24px 24px 0 24px' }}>
-                    <div className="flex items-center justify-between mb-2">
-                      {/* <button
-                        onClick={handleClose}
-                        className="text-gray-500 hover:text-black transition-colors"
-                      >
-                        ← Back
-                      </button> */}
-                      <div></div>
-                      <h2 className={`text-base ${currentPage === 0 ? 'text-transparent' : 'text-gray-600'}`} style={{ fontFamily: 'Chillax' }}>
-                        {story?.title}
-                      </h2>
-                    </div>
-
                     {/* Subtle chapter title for pages 2+ */}
                     {currentPage > 0 && paginatedPages[currentPage - 1]?.chapterIndex === currentPageData.chapterIndex ? (
                       <p className="text-xs text-gray-400 pb-4" style={{ fontFamily: 'Chillax' }}>
                         {currentPageData.chapterTitle}
                       </p>
                     ) : (
-                      <p className="text-xs text-transparent pb-4" style={{ fontFamily: 'Chillax' }}>
-                        placeholder
-                      </p>
+                      <div style={{ height: '16px', paddingBottom: '16px' }}></div>
                     )}
                   </div>
 
