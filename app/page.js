@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, useMotionValue, useAnimationFrame } from 'framer-motion';
 
@@ -97,6 +97,7 @@ export default function Home() {
   const [pressedButton, setPressedButton] = useState(null);
   const circlePositions = useRef({});
   const [paginatedPages, setPaginatedPages] = useState([]);
+  const [fontsReady, setFontsReady] = useState(false);
   const measureRef = useRef(null);
   const contentRef = useRef(null);
   const touchStartX = useRef(null);
@@ -110,26 +111,145 @@ export default function Home() {
       .catch(err => console.error('Failed to load stories:', err));
   }, []);
 
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      setFontsReady(true);
+      return;
+    }
+
+    let isMounted = true;
+
+    if ('fonts' in document && document.fonts?.ready) {
+      document.fonts.ready
+        .then(() => {
+          if (isMounted) {
+            setFontsReady(true);
+          }
+        })
+        .catch(() => {
+          if (isMounted) {
+            setFontsReady(true);
+          }
+        });
+    } else {
+      setFontsReady(true);
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const syncMeasurementContainer = useCallback(() => {
+    if (
+      typeof window === 'undefined' ||
+      !measureRef.current ||
+      !contentRef.current
+    ) {
+      return;
+    }
+
+    const measureEl = measureRef.current;
+    const contentEl = contentRef.current;
+    const computed = window.getComputedStyle(contentEl);
+
+    measureEl.style.width = `${contentEl.clientWidth}px`;
+    measureEl.style.paddingTop = computed.paddingTop;
+    measureEl.style.paddingBottom = computed.paddingBottom;
+    measureEl.style.paddingLeft = computed.paddingLeft;
+    measureEl.style.paddingRight = computed.paddingRight;
+    measureEl.style.fontFamily = computed.fontFamily;
+    measureEl.style.fontSize = computed.fontSize;
+    measureEl.style.lineHeight = computed.lineHeight;
+  }, []);
+
   // Paginate story based on actual rendered height
-  const paginateStoryByHeight = (story) => {
+  const paginateStoryByHeight = useCallback((story) => {
     if (!story || !measureRef.current || !contentRef.current) return [];
 
+    syncMeasurementContainer();
+
     const pages = [];
-    // Use the actual content area height with buffer to prevent text cutoff (more for mobile)
-    const containerHeight = contentRef.current.clientHeight - 60;
+    const contentEl = contentRef.current;
+    const computed = typeof window !== 'undefined'
+      ? window.getComputedStyle(contentEl)
+      : { paddingTop: '0', paddingBottom: '0' };
+    const paddingTop = parseFloat(computed.paddingTop) || 0;
+    const paddingBottom = parseFloat(computed.paddingBottom) || 0;
+    const containerHeight = Math.max(
+      contentEl.clientHeight - paddingTop - paddingBottom,
+      0
+    );
+
+    const createParagraphHtml = (text, isLast = false) => {
+      const marginBottom = isLast ? '0' : '1.25rem';
+      return `<p style="font-family: Inconsolata, monospace; font-size: 1.125rem; line-height: 1.5; color: #374151; margin-bottom: ${marginBottom};">${text}</p>`;
+    };
+
+    const buildParagraphsHtml = (paragraphs) =>
+      paragraphs
+        .map((p, idx) => createParagraphHtml(p, idx === paragraphs.length - 1))
+        .join('');
+
+    const fitParagraphIntoPage = (baseHtml, paragraph) => {
+      const words = paragraph.split(/\s+/).filter(Boolean);
+      if (!words.length) {
+        return { fittingText: '', remainingText: '' };
+      }
+
+      let bestCount = 0;
+      let low = 1;
+      let high = words.length;
+
+      while (low <= high) {
+        const mid = Math.ceil((low + high) / 2);
+        const candidate = words.slice(0, mid).join(' ');
+        measureRef.current.innerHTML = baseHtml + createParagraphHtml(candidate, true);
+
+        if (measureRef.current.scrollHeight <= containerHeight) {
+          bestCount = mid;
+          low = mid + 1;
+        } else {
+          high = mid - 1;
+        }
+      }
+
+      if (bestCount === 0) {
+        return { fittingText: '', remainingText: paragraph };
+      }
+
+      const fittingText = words.slice(0, bestCount).join(' ');
+      const remainingText = words.slice(bestCount).join(' ').trim();
+
+      return { fittingText, remainingText };
+    };
 
     story.chapters.forEach((chapter, chapterIndex) => {
-      const paragraphs = chapter.content.split('\n\n');
+      const paragraphsQueue = [...chapter.content.split('\n\n')];
       let currentPageParagraphs = [];
-      let isFirstPageOfChapter = pages.length === 0 || pages[pages.length - 1].chapterIndex !== chapterIndex;
+      let isFirstPageOfChapter = true;
 
-      for (let pIndex = 0; pIndex < paragraphs.length; pIndex++) {
-        let paragraph = paragraphs[pIndex];
+      const recordPage = (paragraphsForPage, firstPageFlag) => {
+        if (!paragraphsForPage.length) return;
+        const isFirstPageOfStory = pages.length === 0;
+        pages.push({
+          content: paragraphsForPage.join('\n\n'),
+          chapterTitle: chapter.title,
+          chapterIndex,
+          isFirstPageOfChapter: firstPageFlag,
+          isFirstPageOfStory,
+          storyTitle: story.storyTitle || story.title
+        });
+      };
 
-        // Try to add the paragraph
+      while (paragraphsQueue.length > 0) {
+        const paragraph = paragraphsQueue.shift();
+        if (typeof paragraph !== 'string') {
+          continue;
+        }
+
         currentPageParagraphs.push(paragraph);
 
-        // Build test content with story title and/or chapter title if needed
         let testContent = '';
         const isFirstPageOfStory = pages.length === 0;
         if (isFirstPageOfStory) {
@@ -139,121 +259,48 @@ export default function Home() {
           testContent += `<h3 style="font-family: Chillax; font-size: 1.5rem; line-height: 1.2; margin-bottom: 32px; color: #1f2937;">${chapter.title}</h3>`;
         }
 
-        // Build paragraphs with proper spacing
-        const paragraphsHtml = currentPageParagraphs
-          .map((p, i) => {
-            const isLast = i === currentPageParagraphs.length - 1;
-            const marginBottom = isLast ? '0' : '1.25rem';
-            return `<p style="font-family: Inconsolata, monospace; font-size: 1.125rem; line-height: 1.5; color: #374151; margin-bottom: ${marginBottom};">${p}</p>`;
-          })
-          .join('');
+        measureRef.current.innerHTML = testContent + buildParagraphsHtml(currentPageParagraphs);
 
-        measureRef.current.innerHTML = testContent + paragraphsHtml;
-        const height = measureRef.current.scrollHeight;
+        if (measureRef.current.scrollHeight <= containerHeight) {
+          continue;
+        }
 
-        // If it exceeds container height
-        if (height > containerHeight) {
-          // Remove the paragraph that caused overflow
-          const overflowParagraph = currentPageParagraphs.pop();
+        const overflowParagraph = currentPageParagraphs.pop();
+        const baseHtml = testContent + buildParagraphsHtml(currentPageParagraphs);
+        const { fittingText, remainingText } = fitParagraphIntoPage(baseHtml, overflowParagraph);
 
-          // Try to split the overflow paragraph and fill the remaining space
-          const sentences = overflowParagraph.match(/[^.!?]+[.!?]+/g) || [overflowParagraph];
+        if (fittingText) {
+          currentPageParagraphs.push(fittingText);
+          recordPage([...currentPageParagraphs], isFirstPageOfChapter);
+          isFirstPageOfChapter = false;
+          currentPageParagraphs = [];
 
-          if (sentences.length > 1 && currentPageParagraphs.length > 0) {
-            // Try to fit some sentences on the current page
-            let fitSentences = [];
-
-            for (let i = 0; i < sentences.length; i++) {
-              fitSentences.push(sentences[i].trim());
-
-              // Build test with current paragraphs plus partial new paragraph
-              const testParagraphsHtml = currentPageParagraphs
-                .map((p, idx) => {
-                  return `<p style="font-family: Inconsolata, monospace; font-size: 1.125rem; line-height: 1.5; color: #374151; margin-bottom: 1.25rem;">${p}</p>`;
-                })
-                .join('');
-
-              const partialParaHtml = `<p style="font-family: Inconsolata, monospace; font-size: 1.125rem; line-height: 1.5; color: #374151; margin-bottom: 0;">${fitSentences.join(' ')}</p>`;
-
-              measureRef.current.innerHTML = testContent + testParagraphsHtml + partialParaHtml;
-
-              if (measureRef.current.scrollHeight > containerHeight && fitSentences.length > 1) {
-                // This sentence doesn't fit, remove it
-                fitSentences.pop();
-                break;
-              }
-            }
-
-            if (fitSentences.length > 0) {
-              // Add the partial paragraph to current page
-              currentPageParagraphs.push(fitSentences.join(' '));
-
-              // Save the page
-              const isThisFirstPage = pages.length === 0;
-              pages.push({
-                content: currentPageParagraphs.join('\n\n'),
-                chapterTitle: chapter.title,
-                chapterIndex: chapterIndex,
-                isFirstPageOfChapter: isFirstPageOfChapter,
-                isFirstPageOfStory: isThisFirstPage,
-                storyTitle: story.storyTitle || story.title
-              });
-
-              // Start new page with remaining sentences
-              currentPageParagraphs = [sentences.slice(fitSentences.length).join(' ').trim()];
-              isFirstPageOfChapter = false;
-            } else {
-              // Couldn't fit any sentences, save current page and move paragraph to next
-              const isThisFirstPage = pages.length === 0;
-              pages.push({
-                content: currentPageParagraphs.join('\n\n'),
-                chapterTitle: chapter.title,
-                chapterIndex: chapterIndex,
-                isFirstPageOfChapter: isFirstPageOfChapter,
-                isFirstPageOfStory: isThisFirstPage,
-                storyTitle: story.storyTitle || story.title
-              });
-
-              currentPageParagraphs = [overflowParagraph];
-              isFirstPageOfChapter = false;
-            }
-          } else {
-            // Can't split or no existing content, just save what we have and continue
-            if (currentPageParagraphs.length > 0) {
-              const isThisFirstPage = pages.length === 0;
-              pages.push({
-                content: currentPageParagraphs.join('\n\n'),
-                chapterTitle: chapter.title,
-                chapterIndex: chapterIndex,
-                isFirstPageOfChapter: isFirstPageOfChapter,
-                isFirstPageOfStory: isThisFirstPage,
-                storyTitle: story.storyTitle || story.title
-              });
-
-              isFirstPageOfChapter = false;
-            }
-
-            currentPageParagraphs = [overflowParagraph];
+          if (remainingText) {
+            paragraphsQueue.unshift(remainingText);
           }
+          continue;
+        }
+
+        if (currentPageParagraphs.length > 0) {
+          recordPage([...currentPageParagraphs], isFirstPageOfChapter);
+          isFirstPageOfChapter = false;
+          currentPageParagraphs = [];
+          paragraphsQueue.unshift(overflowParagraph);
+        } else {
+          recordPage([overflowParagraph], isFirstPageOfChapter);
+          isFirstPageOfChapter = false;
         }
       }
 
-      // Save remaining content
       if (currentPageParagraphs.length > 0) {
-        const isThisFirstPage = pages.length === 0;
-        pages.push({
-          content: currentPageParagraphs.join('\n\n'),
-          chapterTitle: chapter.title,
-          chapterIndex: chapterIndex,
-          isFirstPageOfChapter: isFirstPageOfChapter,
-          isFirstPageOfStory: isThisFirstPage,
-          storyTitle: story.storyTitle || story.title
-        });
+        recordPage([...currentPageParagraphs], isFirstPageOfChapter);
+        isFirstPageOfChapter = false;
+        currentPageParagraphs = [];
       }
     });
 
     return pages;
-  };
+  }, [syncMeasurementContainer]);
 
   const handleStoryClick = (storyId) => {
     setPressedButton(storyId);
@@ -326,40 +373,64 @@ export default function Home() {
     touchEndX.current = null;
   };
 
-  // Paginate story when it's opened or window resizes
+  // Paginate story when it's opened or layout changes
   useEffect(() => {
-    if (!activeStory || !measureRef.current || !contentRef.current) return;
+    if (!activeStory || !measureRef.current || !contentRef.current || !fontsReady) {
+      return;
+    }
 
-    // Wait for layout to complete before measuring
-    const timeoutId = setTimeout(() => {
-      requestAnimationFrame(() => {
+    let animationFrameId = null;
+
+    const queuePagination = () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+      animationFrameId = requestAnimationFrame(() => {
         const story = stories.find(s => s.id === activeStory);
         if (story) {
           const pages = paginateStoryByHeight(story);
           setPaginatedPages(pages);
         }
       });
+    };
+
+    const timeoutId = setTimeout(() => {
+      queuePagination();
     }, 150);
 
-    // Re-paginate on window resize
-    const handleResize = () => {
-      if (activeStory && contentRef.current) {
-        requestAnimationFrame(() => {
-          const story = stories.find(s => s.id === activeStory);
-          if (story) {
-            const pages = paginateStoryByHeight(story);
-            setPaginatedPages(pages);
-          }
-        });
+    const cleanupFrame = () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
       }
     };
 
-    window.addEventListener('resize', handleResize);
+    const contentEl = contentRef.current;
+    let resizeObserver;
+
+    if (typeof ResizeObserver !== 'undefined' && contentEl) {
+      resizeObserver = new ResizeObserver(() => {
+        queuePagination();
+      });
+      resizeObserver.observe(contentEl);
+    } else {
+      const handleResize = () => queuePagination();
+      window.addEventListener('resize', handleResize);
+      return () => {
+        clearTimeout(timeoutId);
+        cleanupFrame();
+        window.removeEventListener('resize', handleResize);
+      };
+    }
+
     return () => {
       clearTimeout(timeoutId);
-      window.removeEventListener('resize', handleResize);
+      cleanupFrame();
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
     };
-  }, [activeStory, stories]);
+  }, [activeStory, stories, fontsReady, paginateStoryByHeight]);
 
   const updateCirclePosition = (index, position) => {
     circlePositions.current[index] = position;
@@ -378,7 +449,7 @@ export default function Home() {
         }, 500);
       }
     }
-  }, []);
+  }, [pathname, stories]);
 
   // Keyboard navigation for story pages
   useEffect(() => {
