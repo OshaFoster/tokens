@@ -719,9 +719,9 @@ export default function Home() {
         </div>
       )}
 
-      {/* Donate button */}
+      {/* Donate button - desktop */}
       <motion.div
-        className={`fixed bottom-4 md:bottom-8 right-4 md:right-8 group cursor-pointer z-50 ${activeStory ? 'hidden md:block' : ''}`}
+        className="hidden md:block fixed bottom-8 right-8 group cursor-pointer z-50"
         onClick={() => {
         if (!showDonate) {
           setShowDonate(true);
@@ -776,15 +776,65 @@ export default function Home() {
         </div>
       </motion.div>
 
+      {/* Donate button - mobile */}
+      <motion.button
+        type="button"
+        className={`md:hidden fixed inset-x-4 bottom-4 z-50 ${
+          showDonate ? 'pointer-events-none' : 'pointer-events-auto'
+        }`}
+        style={{
+          bottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))'
+        }}
+        onClick={() => {
+          if (!showDonate) {
+            setShowDonate(true);
+            setTimeout(() => setAnimateDonate(true), 10);
+          }
+        }}
+        initial={{ opacity: 0, translateY: 16 }}
+        animate={{ opacity: showDonate ? 0 : 1, translateY: showDonate ? 16 : 0 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+      >
+        <div
+          className={`relative flex items-center justify-center gap-3 rounded-full py-3 px-6 shadow-lg transition-colors ${
+            activeStory
+              ? 'bg-white text-black border border-white/60'
+              : 'bg-black text-white border border-black'
+          }`}
+        >
+          <span className="text-base font-medium" style={{ fontFamily: 'Chillax' }}>support tokens</span>
+          <span className="text-sm" aria-hidden="true">↗</span>
+        </div>
+      </motion.button>
+
       {/* Donate popup */}
       {showDonate && (
-        <div className="fixed bottom-20 md:bottom-24 right-8 bg-white rounded-lg shadow-lg w-[320px] animate-slide-up overflow-hidden border border-white z-50" style={{ padding: '24px' }}>
-          <div className={`absolute inset-0 bg-black rounded-lg ${animateDonate ? 'animate-fill-bottom-up' : 'opacity-0'}`}></div>
-          <p className="text-base text-white mb-8 leading-relaxed relative z-10">
-            donations are really appreciated
-          </p>
-          <p className="text-sm font-medium mb-4 text-gray-300 relative z-10">Venmo</p>
-          <p className="text-lg text-white relative z-10">@Osha-Foster</p>
+        <div className="fixed inset-x-0 bottom-0 md:inset-auto md:bottom-24 md:right-8 md:w-[320px] md:rounded-lg md:shadow-lg md:border md:border-white md:overflow-hidden z-50">
+          <div
+            className="relative mx-4 md:mx-0 bg-white rounded-t-3xl md:rounded-lg overflow-hidden shadow-lg md:shadow-none border border-white md:border-none animate-slide-up"
+            style={{
+              padding: '24px',
+              paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 16px))'
+            }}
+          >
+            <div className={`absolute inset-0 bg-black rounded-t-3xl md:rounded-lg ${animateDonate ? 'animate-fill-bottom-up' : 'opacity-0'}`}></div>
+            <button
+              type="button"
+              className="md:hidden absolute top-4 right-4 text-white z-10"
+              onClick={() => {
+                setShowDonate(false);
+                setAnimateDonate(false);
+              }}
+              aria-label="Close donate panel"
+            >
+              ✕
+            </button>
+            <p className="text-base text-white mb-8 leading-relaxed relative z-10">
+              donations are really appreciated
+            </p>
+            <p className="text-sm font-medium mb-4 text-gray-300 relative z-10">Venmo</p>
+            <p className="text-lg text-white relative z-10">@Osha-Foster</p>
+          </div>
         </div>
       )}
 
