@@ -102,6 +102,9 @@ export default function Home() {
   const contentRef = useRef(null);
   const touchStartX = useRef(null);
   const touchEndX = useRef(null);
+  const mobileSafeArea = 'env(safe-area-inset-bottom, 0px)';
+  const mobileDonateButtonBottom = `calc(1rem + ${mobileSafeArea})`;
+  const mobileDonateSheetBottom = mobileSafeArea;
 
   // Load stories from API
   useEffect(() => {
@@ -436,6 +439,51 @@ export default function Home() {
     circlePositions.current[index] = position;
   };
 
+  const renderDonateContent = (variant) => {
+    const isMobile = variant === 'mobile';
+    const mobileClasses = ['mx-4', 'rounded-t-3xl', 'shadow-lg'].join(' ');
+
+    return (
+      <div
+        className={`relative ${
+          isMobile
+            ? mobileClasses
+            : 'w-[320px] rounded-lg shadow-lg border-[0.5px] border-white/60'
+        } bg-white overflow-hidden animate-slide-up`}
+        style={{
+          padding: '24px',
+          paddingBottom: isMobile
+            ? 'calc(24px + env(safe-area-inset-bottom, 16px))'
+            : '24px'
+        }}
+      >
+        <div
+          className={`absolute inset-0 bg-black ${
+            isMobile ? 'rounded-t-3xl' : 'rounded-lg'
+          } ${animateDonate ? 'animate-fill-bottom-up' : 'opacity-0'}`}
+        ></div>
+        {isMobile && (
+          <button
+            type="button"
+            className="absolute top-4 right-4 text-white z-10"
+            onClick={() => {
+              setShowDonate(false);
+              setAnimateDonate(false);
+            }}
+            aria-label="Close donate panel"
+          >
+            ✕
+          </button>
+        )}
+        <p className="text-base text-white mb-8 leading-relaxed relative z-10">
+          donations are really appreciated
+        </p>
+        <p className="text-sm font-medium mb-4 text-gray-300 relative z-10">Venmo</p>
+        <p className="text-lg text-white relative z-10">@Osha-Foster</p>
+      </div>
+    );
+  };
+
   // Read URL on mount to open the right story
   useEffect(() => {
     const path = pathname.replace('/', '');
@@ -686,31 +734,53 @@ export default function Home() {
                       );
                     })}
                   </div>
-                  <div className="flex-shrink-0 flex items-center justify-between" style={{ padding: '12px 24px' }}>
-                    <button
-                      onClick={handlePrevPage}
-                      disabled={currentPage === 0}
-                      className="text-gray-600 hover:text-black transition-colors disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-gray-400"
-                      style={{ padding: '8px 12px' }}
-                    >
-                      ← Previous
-                    </button>
-                    <span className="text-sm text-gray-500">
-                      {currentPage + 1} / {paginatedPages.length}
-                    </span>
-                    <button
-                      onClick={() => {
-                        if (currentPage === paginatedPages.length - 1) {
-                          setCurrentPage(0);
-                        } else {
-                          handleNextPage();
-                        }
-                      }}
-                      className="text-gray-600 hover:text-black transition-colors cursor-pointer focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-gray-400"
-                      style={{ padding: '8px 12px' }}
-                    >
-                      {currentPage === paginatedPages.length - 1 ? '↻ Start' : 'Next →'}
-                    </button>
+                  <div className="flex-shrink-0" style={{ padding: '12px 24px 24px' }}>
+                    <div className="flex items-center justify-between">
+                      <button
+                        onClick={handlePrevPage}
+                        disabled={currentPage === 0}
+                        className="text-gray-600 hover:text-black transition-colors disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-gray-400"
+                        style={{ padding: '8px 12px' }}
+                      >
+                        ← Previous
+                      </button>
+                      <span className="text-sm text-gray-500">
+                        {currentPage + 1} / {paginatedPages.length}
+                      </span>
+                      <button
+                        onClick={() => {
+                          if (currentPage === paginatedPages.length - 1) {
+                            setCurrentPage(0);
+                          } else {
+                            handleNextPage();
+                          }
+                        }}
+                        className="text-gray-600 hover:text-black transition-colors cursor-pointer focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-gray-400"
+                        style={{ padding: '8px 12px' }}
+                      >
+                        {currentPage === paginatedPages.length - 1 ? '↻ Start' : 'Next →'}
+                      </button>
+                    </div>
+                    <div className="mt-4 md:hidden">
+                      <button
+                        type="button"
+                        className={`w-full rounded-full py-3 px-6 shadow-lg transition-colors ${
+                          activeStory
+                            ? 'bg-white text-black border border-white/60'
+                            : 'bg-black text-white border border-black'
+                        } flex items-center justify-center gap-2`}
+                        style={{ fontFamily: 'Chillax' }}
+                        onClick={() => {
+                          if (!showDonate) {
+                            setShowDonate(true);
+                            setTimeout(() => setAnimateDonate(true), 10);
+                          }
+                        }}
+                      >
+                        <span className="text-base font-medium">donate</span>
+                        <span className="text-sm font-medium" aria-hidden="true">$</span>
+                      </button>
+                    </div>
                   </div>
                 </>
               );
@@ -776,66 +846,49 @@ export default function Home() {
         </div>
       </motion.div>
 
-      {/* Donate button - mobile */}
-      <motion.button
-        type="button"
-        className={`md:hidden fixed inset-x-4 bottom-4 z-50 ${
-          showDonate ? 'pointer-events-none' : 'pointer-events-auto'
-        }`}
-        style={{
-          bottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))'
-        }}
-        onClick={() => {
-          if (!showDonate) {
-            setShowDonate(true);
-            setTimeout(() => setAnimateDonate(true), 10);
-          }
-        }}
-        initial={{ opacity: 0, translateY: 16 }}
-        animate={{ opacity: showDonate ? 0 : 1, translateY: showDonate ? 16 : 0 }}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
-      >
-        <div
-          className={`relative flex items-center justify-center gap-3 rounded-full py-3 px-6 shadow-lg transition-colors ${
-            activeStory
-              ? 'bg-white text-black border border-white/60'
-              : 'bg-black text-white border border-black'
+      {/* Donate button - mobile (home view) */}
+      {!activeStory && (
+        <motion.button
+          type="button"
+          className={`md:hidden fixed inset-x-4 z-50 ${
+            showDonate ? 'pointer-events-none' : 'pointer-events-auto'
           }`}
+          style={{
+            bottom: mobileDonateButtonBottom
+          }}
+          onClick={() => {
+            if (!showDonate) {
+              setShowDonate(true);
+              setTimeout(() => setAnimateDonate(true), 10);
+            }
+          }}
+          initial={{ opacity: 0, translateY: 16 }}
+          animate={{ opacity: showDonate ? 0 : 1, translateY: showDonate ? 16 : 0 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
         >
-          <span className="text-base font-medium" style={{ fontFamily: 'Chillax' }}>support tokens</span>
-          <span className="text-sm" aria-hidden="true">↗</span>
-        </div>
-      </motion.button>
+          <div
+            className="relative flex items-center justify-center gap-2 rounded-full py-3 px-6 shadow-lg transition-colors bg-black text-white border border-black"
+            style={{ fontFamily: 'Chillax' }}
+          >
+            <span className="text-base font-medium">donate</span>
+            <span className="text-sm font-medium" aria-hidden="true">$</span>
+          </div>
+        </motion.button>
+      )}
 
       {/* Donate popup */}
       {showDonate && (
-        <div className="fixed inset-x-0 bottom-0 md:inset-auto md:bottom-24 md:right-8 md:w-[320px] md:rounded-lg md:shadow-lg md:border md:border-white md:overflow-hidden z-50">
+        <>
           <div
-            className="relative mx-4 md:mx-0 bg-white rounded-t-3xl md:rounded-lg overflow-hidden shadow-lg md:shadow-none border border-white md:border-none animate-slide-up"
-            style={{
-              padding: '24px',
-              paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 16px))'
-            }}
+            className="md:hidden fixed inset-x-0 z-50"
+            style={{ bottom: mobileDonateSheetBottom }}
           >
-            <div className={`absolute inset-0 bg-black rounded-t-3xl md:rounded-lg ${animateDonate ? 'animate-fill-bottom-up' : 'opacity-0'}`}></div>
-            <button
-              type="button"
-              className="md:hidden absolute top-4 right-4 text-white z-10"
-              onClick={() => {
-                setShowDonate(false);
-                setAnimateDonate(false);
-              }}
-              aria-label="Close donate panel"
-            >
-              ✕
-            </button>
-            <p className="text-base text-white mb-8 leading-relaxed relative z-10">
-              donations are really appreciated
-            </p>
-            <p className="text-sm font-medium mb-4 text-gray-300 relative z-10">Venmo</p>
-            <p className="text-lg text-white relative z-10">@Osha-Foster</p>
+            {renderDonateContent('mobile')}
           </div>
-        </div>
+          <div className="hidden md:block fixed inset-auto bottom-28 right-8 z-50">
+            {renderDonateContent('desktop')}
+          </div>
+        </>
       )}
 
       {/* Hidden measurement div - matches content area dimensions */}
