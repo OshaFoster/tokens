@@ -695,6 +695,15 @@ export default function Home() {
               return (
                 <>
                   <div className="flex-shrink-0" style={{ padding: '24px 24px 0 24px' }}>
+                    <div className="flex items-center justify-between mb-2">
+                      <button
+                        onClick={handleClose}
+                        className="text-gray-500 hover:text-black transition-colors cursor-pointer"
+                      >
+                        ← Back
+                      </button>
+                      <div></div>
+                    </div>
                     {/* Subtle chapter title for pages 2+ */}
                     {currentPage > 0 && paginatedPages[currentPage - 1]?.chapterIndex === currentPageData.chapterIndex ? (
                       <p className="text-xs text-gray-400 pb-4" style={{ fontFamily: 'Chillax' }}>
