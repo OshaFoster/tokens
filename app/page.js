@@ -448,7 +448,7 @@ export default function Home() {
         className={`relative ${
           isMobile
             ? mobileClasses
-            : 'w-[320px] rounded-lg shadow-lg border-[0.5px] border-white/60'
+            : 'w-[260px] rounded-lg shadow-lg border-[0.5px] border-white/60'
         } bg-white overflow-hidden animate-slide-up`}
         style={{
           padding: '24px',
@@ -475,10 +475,10 @@ export default function Home() {
             ✕
           </button>
         )}
-        <p className="text-base text-white mb-8 leading-relaxed relative z-10">
-          Donate if you'd like
+        <p className="text-base text-white leading-relaxed relative z-10" style={{ marginBottom: '14px' }}>
+          buy me coffee, or tea.
         </p>
-        <p className="text-sm font-medium mb-4 text-gray-300 relative z-10">Venmo</p>
+        <p className="text-sm font-medium text-gray-300 relative z-10" style={{ marginBottom: '4px' }}>venmo</p>
         <p className="text-lg text-white relative z-10">@Osha-Foster</p>
       </div>
     );
