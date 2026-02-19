@@ -476,7 +476,7 @@ export default function Home() {
           </button>
         )}
         <p className="text-base text-white mb-8 leading-relaxed relative z-10">
-          donations are really appreciated
+          Donate if you'd like
         </p>
         <p className="text-sm font-medium mb-4 text-gray-300 relative z-10">Venmo</p>
         <p className="text-lg text-white relative z-10">@Osha-Foster</p>
