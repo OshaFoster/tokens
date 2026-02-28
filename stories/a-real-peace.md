@@ -18,7 +18,7 @@ None of them would have said they believed in Mastin, not exactly. They barely n
 
 No one thought it would amount to anything. The self-help industry was crowded; voices rose and disappeared every year. If you had told anyone then that ideas about nervous system regulation and trauma repair would eventually influence education, conflict resolution, even public policy, they would have laughed.
 
-And yet it began here—in quiet corners of living rooms, dorm rooms, and cell phones—with a man talking too fast about myth and psychology, and with listeners who, for reasons they couldn't quite explain, chose not to swipe away.
+And yet it began here—in quiet corners of living rooms, dorm rooms, and cell phones—with a man talking too fast about myth, psychology, and faith, and with listeners who, for reasons they couldn't quite explain, chose not to swipe away.
 
 ## Spark
 
