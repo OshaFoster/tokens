@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, useMotionValue, useAnimationFrame } from 'framer-motion';
 
@@ -87,6 +87,13 @@ export default function Home() {
   const router = useRouter();
   const pathname = usePathname();
   const [stories, setStories] = useState([]);
+  const storySizes = [130, 150, 140, 160, 145, 130, 155, 140, 150, 135, 145, 160, 130, 150, 140, 155, 135, 145, 130, 150];
+  const storyOffsets = useMemo(() => (
+    Array.from({ length: 20 }, () => ({
+      x: (Math.random() - 0.5) * 20,
+      y: (Math.random() - 0.5) * 100,
+    }))
+  ), []);
   const [activeStory, setActiveStory] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -623,36 +630,42 @@ export default function Home() {
         </div>
 
         {/* Main content area */}
-        <div className="min-h-screen flex items-center justify-center p-8">
+        <div className="min-h-screen flex items-center justify-center p-8 pt-24 lg:pt-8">
           {stories.length > 0 && (
             <div className="main-grid-container">
               <motion.div
-                className="bg-white border border-black rounded-lg relative z-10 story-grid-box"
+                className="relative z-10 story-grid-box"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.4, delay: 1.0, ease: "easeOut" }}
               >
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-12">
+              <div className="flex flex-wrap justify-center gap-6 lg:gap-8 max-w-3xl">
                 {/* Story cards */}
                 {stories.map((story, index) => (
                   <motion.button
                     key={story.id}
                     onClick={() => handleStoryClick(story.id)}
-                    className="flex flex-row items-center gap-4 group cursor-pointer"
+                    className="rounded-full bg-white/70 text-black flex items-center justify-center cursor-pointer group relative overflow-hidden border border-black/20 group-hover:text-white"
+                    style={{
+                      width: storySizes[index % storySizes.length],
+                      height: storySizes[index % storySizes.length],
+                      padding: '14px',
+                      fontFamily: 'Chillax',
+                      fontSize: '16px',
+                      lineHeight: '1.3',
+                      textAlign: 'center',
+                    }}
                     initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                    animate={{ opacity: 1, x: storyOffsets[index % storyOffsets.length].x, y: storyOffsets[index % storyOffsets.length].y }}
                     transition={{ duration: 0.4, delay: 1.2 + (index * 0.1), ease: "easeOut" }}
                   >
-                    <div className="w-[50px] h-[50px] rounded-full border border-black relative overflow-hidden flex items-center justify-center">
-                      <div className={`absolute bottom-0 left-0 right-0 bg-black rounded-full transition-all ease-out group-hover:h-full ${
-                        pressedButton === story.id ? 'h-full duration-[400ms]' : 'h-0 duration-500'
-                      }`}></div>
-                      {/* Arrow for desktop */}
-                      <svg className="relative z-10 w-5 h-5 text-white hidden lg:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="absolute bottom-0 left-0 right-0 h-0 bg-black group-hover:h-full transition-all duration-500 ease-in-out rounded-full" />
+                    <span className="relative z-10 transition-opacity duration-200 group-hover:opacity-0">{story.title}</span>
+                    <span className="absolute inset-0 flex items-center justify-center z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-300">
+                      <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                       </svg>
-                    </div>
-                    <p className="text-base" style={{ fontFamily: 'Chillax' }}>{story.title}</p>
+                    </span>
                   </motion.button>
                 ))}
               </div>
