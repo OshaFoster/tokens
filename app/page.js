@@ -330,21 +330,21 @@ export default function Home() {
   const handleStoryClick = (storyId) => {
     setPressedButton(storyId);
     setPaginatedPages([]);
-    const story = stories.find(s => s.id === storyId);
-    const urlTitle = story.title.replace(/\s+/g, '-');
-    window.history.pushState({}, '', `/${urlTitle}`);
 
     // Let button fill complete (500ms), then start background transition
     setTimeout(() => {
       setIsTransitioning(true);
     }, 850);
 
-    // Show modal after fill (500ms) + background transition (700ms) + 3s test pause
+    // Show modal after fill + background transition — push URL here so pathname effect doesn't fire early
     setTimeout(() => {
+      const story = stories.find(s => s.id === storyId);
+      const urlTitle = story.title.replace(/\s+/g, '-');
+      window.history.pushState({}, '', `/${urlTitle}`);
       setActiveStory(storyId);
       setCurrentPage(0);
       setPressedButton(null);
-    }, 4550);
+    }, 2500);
   };
 
   const handleClose = () => {
