@@ -339,12 +339,12 @@ export default function Home() {
       setIsTransitioning(true);
     }, 850);
 
-    // Show modal after fill (500ms) + background transition (700ms) + buffer
+    // Show modal after fill (500ms) + background transition (700ms) + 3s test pause
     setTimeout(() => {
       setActiveStory(storyId);
       setCurrentPage(0);
       setPressedButton(null);
-    }, 1650);
+    }, 4550);
   };
 
   const handleClose = () => {
