@@ -95,6 +95,7 @@ export default function Home() {
       y: (Math.random() - 0.5) * 100,
     }))
   ), []);
+  const [tokenSizeFactor, setTokenSizeFactor] = useState(1);
   const [activeStory, setActiveStory] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -115,6 +116,11 @@ export default function Home() {
   const mobileSafeArea = 'env(safe-area-inset-bottom, 0px)';
   const mobileDonateButtonBottom = `calc(1rem + ${mobileSafeArea})`;
   const mobileDonateSheetBottom = mobileSafeArea;
+
+  // Scale down story tokens on mobile
+  useEffect(() => {
+    if (window.innerWidth < 768) setTokenSizeFactor(0.82);
+  }, []);
 
   // Measure header bottom to position story grid dynamically
   useEffect(() => {
@@ -328,6 +334,10 @@ export default function Home() {
   }, [syncMeasurementContainer]);
 
   const handleStoryClick = (storyId) => {
+    if (showDonate) {
+      setShowDonate(false);
+      setAnimateDonate(false);
+    }
     setPressedButton(storyId);
     setPaginatedPages([]);
 
@@ -668,7 +678,7 @@ export default function Home() {
                 paddingLeft: '32px',
                 paddingRight: '32px',
                 paddingTop: '0',
-                paddingBottom: 'calc(200px + env(safe-area-inset-bottom, 0px))',
+                paddingBottom: 'calc(120px + env(safe-area-inset-bottom, 0px))',
                 margin: '0 auto',
               }}
             >
@@ -681,8 +691,8 @@ export default function Home() {
                     onClick={() => handleStoryClick(story.id)}
                     className="rounded-full bg-white/70 text-black flex items-center justify-center cursor-pointer group relative overflow-hidden border border-black/20 group-hover:text-white"
                     style={{
-                      width: storySizes[index % storySizes.length],
-                      height: storySizes[index % storySizes.length],
+                      width: storySizes[index % storySizes.length] * tokenSizeFactor,
+                      height: storySizes[index % storySizes.length] * tokenSizeFactor,
                       padding: '14px',
                       fontFamily: 'Chillax',
                       fontSize: '16px',
