@@ -334,17 +334,17 @@ export default function Home() {
     const urlTitle = story.title.replace(/\s+/g, '-');
     window.history.pushState({}, '', `/${urlTitle}`);
 
-    // Let button fill complete, then start transition
+    // Let button fill complete (500ms), then start background transition
     setTimeout(() => {
       setIsTransitioning(true);
-    }, 550);
+    }, 650);
 
-    // Show modal after button fill + transition
+    // Show modal after fill (500ms) + background transition (700ms) + buffer
     setTimeout(() => {
       setActiveStory(storyId);
       setCurrentPage(0);
       setPressedButton(null);
-    }, 1100);
+    }, 1450);
   };
 
   const handleClose = () => {
