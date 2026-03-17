@@ -21,11 +21,12 @@ function DriftingCircle({ index, total, color = 'black', onPositionUpdate, initi
       posX = initialPosition.x;
       posY = initialPosition.y;
     } else {
-      size = 300 + Math.random() * 350;
+      const rawSize = 300 + Math.random() * 350;
+      size = Math.min(rawSize, window.innerWidth * 0.95, window.innerHeight * 0.95);
       const sectionWidth = window.innerWidth / total;
       const sectionX = sectionWidth * index;
-      posX = sectionX + Math.random() * (sectionWidth - size);
-      posY = Math.random() * (window.innerHeight - size);
+      posX = Math.max(0, sectionX + Math.random() * Math.max(0, sectionWidth - size));
+      posY = Math.random() * Math.max(0, window.innerHeight - size);
     }
 
     const velX = (Math.random() - 0.5) * 0.15;
@@ -41,8 +42,8 @@ function DriftingCircle({ index, total, color = 'black', onPositionUpdate, initi
   useAnimationFrame(() => {
     if (!init) return;
 
-    const maxX = window.innerWidth - init.size;
-    const maxY = window.innerHeight - init.size;
+    const maxX = Math.max(0, window.innerWidth - init.size);
+    const maxY = Math.max(0, window.innerHeight - init.size);
 
     let newX = x.get() + velocity.current.x;
     let newY = y.get() + velocity.current.y;
@@ -90,7 +91,7 @@ export default function Home() {
   const storySizes = [130, 150, 140, 160, 145, 130, 155, 140, 150, 135, 145, 160, 130, 150, 140, 155, 135, 145, 130, 150];
   const storyOffsets = useMemo(() => (
     Array.from({ length: 20 }, () => ({
-      x: (Math.random() - 0.5) * 20,
+      x: (Math.random() - 0.5) * 30,
       y: (Math.random() - 0.5) * 100,
     }))
   ), []);
@@ -103,6 +104,8 @@ export default function Home() {
   const [animateDonate, setAnimateDonate] = useState(false);
   const [pressedButton, setPressedButton] = useState(null);
   const circlePositions = useRef({});
+  const headerRef = useRef(null);
+  const [headerBottom, setHeaderBottom] = useState(0);
   const [paginatedPages, setPaginatedPages] = useState([]);
   const [fontsReady, setFontsReady] = useState(false);
   const measureRef = useRef(null);
@@ -112,6 +115,18 @@ export default function Home() {
   const mobileSafeArea = 'env(safe-area-inset-bottom, 0px)';
   const mobileDonateButtonBottom = `calc(1rem + ${mobileSafeArea})`;
   const mobileDonateSheetBottom = mobileSafeArea;
+
+  // Measure header bottom to position story grid dynamically
+  useEffect(() => {
+    const measure = () => {
+      if (headerRef.current) {
+        setHeaderBottom(headerRef.current.getBoundingClientRect().bottom);
+      }
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [fontsReady]);
 
   // Load stories from API
   useEffect(() => {
@@ -568,7 +583,7 @@ export default function Home() {
         isTransitioning || activeStory ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}>
         {/* Header with tokens branding */}
-        <div className="absolute top-4 left-4 sm:top-6 sm:left-6 md:top-8 md:left-8">
+        <div ref={headerRef} className="absolute top-4 left-4 sm:top-6 sm:left-6 md:top-8 md:left-8 z-20">
           <div className="relative inline-block">
             <h1 className="text-[4rem] sm:text-[5rem] md:text-[7rem] lg:text-[9rem] xl:text-[12rem] tracking-tight leading-none" style={{ fontFamily: 'Chillax' }}>
               {"tokens".split("").map((letter, index) => (
@@ -629,50 +644,60 @@ export default function Home() {
           )}
         </div>
 
-        {/* Main content area */}
-        <div className="min-h-screen flex items-center justify-center p-8 pt-24 lg:pt-8">
-          {stories.length > 0 && (
-            <div className="main-grid-container">
-              <motion.div
-                className="relative z-10 story-grid-box"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.4, delay: 1.0, ease: "easeOut" }}
-              >
-              <div className="flex flex-wrap justify-center gap-6 lg:gap-8 max-w-3xl">
-                {/* Story cards */}
-                {stories.map((story, index) => (
-                  <motion.button
-                    key={story.id}
-                    onClick={() => handleStoryClick(story.id)}
-                    className="rounded-full bg-white/70 text-black flex items-center justify-center cursor-pointer group relative overflow-hidden border border-black/20 group-hover:text-white"
-                    style={{
-                      width: storySizes[index % storySizes.length],
-                      height: storySizes[index % storySizes.length],
-                      padding: '14px',
-                      fontFamily: 'Chillax',
-                      fontSize: '16px',
-                      lineHeight: '1.3',
-                      textAlign: 'center',
-                    }}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1, x: storyOffsets[index % storyOffsets.length].x, y: storyOffsets[index % storyOffsets.length].y }}
-                    transition={{ duration: 0.4, delay: 1.2 + (index * 0.1), ease: "easeOut" }}
-                  >
-                    <div className="absolute bottom-0 left-0 right-0 h-0 bg-black group-hover:h-full transition-all duration-500 ease-in-out rounded-full" />
-                    <span className="relative z-10 transition-opacity duration-200 group-hover:opacity-0">{story.title}</span>
-                    <span className="absolute inset-0 flex items-center justify-center z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-300">
-                      <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                      </svg>
-                    </span>
-                  </motion.button>
-                ))}
-              </div>
-            </motion.div>
+        {/* Main content area — positioned dynamically from below header to screen bottom */}
+        {headerBottom > 0 && stories.length > 0 && (
+          <motion.div
+            className="relative z-10"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4, delay: 1.0, ease: "easeOut" }}
+            style={{
+              position: 'absolute',
+              top: headerBottom + 12,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
+          >
+            <div
+              className="flex flex-wrap justify-center gap-6 lg:gap-8"
+              style={{
+                height: '100%',
+                alignContent: 'space-evenly',
+                padding: '0 32px 80px',
+              }}
+            >
+              {/* Story cards */}
+              {stories.map((story, index) => (
+                <motion.button
+                  key={story.id}
+                  onClick={() => handleStoryClick(story.id)}
+                  className="rounded-full bg-white/70 text-black flex items-center justify-center cursor-pointer group relative overflow-hidden border border-black/20 group-hover:text-white"
+                  style={{
+                    width: storySizes[index % storySizes.length],
+                    height: storySizes[index % storySizes.length],
+                    padding: '14px',
+                    fontFamily: 'Chillax',
+                    fontSize: '16px',
+                    lineHeight: '1.3',
+                    textAlign: 'center',
+                  }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1, x: storyOffsets[index % storyOffsets.length].x, y: storyOffsets[index % storyOffsets.length].y }}
+                  transition={{ duration: 0.4, delay: 1.2 + (index * 0.1), ease: "easeOut" }}
+                >
+                  <div className="absolute bottom-0 left-0 right-0 h-0 bg-black group-hover:h-full transition-all duration-500 ease-in-out rounded-full" />
+                  <span className="relative z-10 transition-opacity duration-200 group-hover:opacity-0">{story.title}</span>
+                  <span className="absolute inset-0 flex items-center justify-center z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-300">
+                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </span>
+                </motion.button>
+              ))}
             </div>
-          )}
-        </div>
+          </motion.div>
+        )}
       </div>
 
       {/* Story view */}
