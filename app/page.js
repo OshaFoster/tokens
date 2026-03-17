@@ -668,7 +668,7 @@ export default function Home() {
                 paddingLeft: '32px',
                 paddingRight: '32px',
                 paddingTop: '0',
-                paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
+                paddingBottom: 'calc(130px + env(safe-area-inset-bottom, 0px))',
                 margin: '0 auto',
               }}
             >
