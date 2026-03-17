@@ -337,14 +337,14 @@ export default function Home() {
     // Let button fill complete, then start transition
     setTimeout(() => {
       setIsTransitioning(true);
-    }, 350);
+    }, 550);
 
     // Show modal after button fill + transition
     setTimeout(() => {
       setActiveStory(storyId);
       setCurrentPage(0);
       setPressedButton(null);
-    }, 900);
+    }, 1100);
   };
 
   const handleClose = () => {
@@ -665,7 +665,7 @@ export default function Home() {
               style={{
                 height: '100%',
                 alignContent: 'space-evenly',
-                padding: '0 32px 80px',
+                padding: `0 32px calc(80px + env(safe-area-inset-bottom, 0px))`,
                 margin: '0 auto',
               }}
             >
