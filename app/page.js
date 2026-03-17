@@ -487,8 +487,9 @@ export default function Home() {
         {isMobile && (
           <button
             type="button"
-            className="absolute top-4 right-4 text-white z-10"
-            onClick={() => {
+            className="absolute top-5 right-6 text-white z-20 pointer-events-auto"
+            onClick={(e) => {
+              e.stopPropagation();
               setShowDonate(false);
               setAnimateDonate(false);
             }}
@@ -660,41 +661,45 @@ export default function Home() {
             }}
           >
             <div
-              className="flex flex-wrap justify-center gap-6 lg:gap-8"
+              className="w-full flex flex-wrap justify-center gap-6 lg:gap-8 lg:max-w-3xl"
               style={{
                 height: '100%',
                 alignContent: 'space-evenly',
                 padding: '0 32px 80px',
+                margin: '0 auto',
               }}
             >
               {/* Story cards */}
-              {stories.map((story, index) => (
-                <motion.button
-                  key={story.id}
-                  onClick={() => handleStoryClick(story.id)}
-                  className="rounded-full bg-white/70 text-black flex items-center justify-center cursor-pointer group relative overflow-hidden border border-black/20 group-hover:text-white"
-                  style={{
-                    width: storySizes[index % storySizes.length],
-                    height: storySizes[index % storySizes.length],
-                    padding: '14px',
-                    fontFamily: 'Chillax',
-                    fontSize: '16px',
-                    lineHeight: '1.3',
-                    textAlign: 'center',
-                  }}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1, x: storyOffsets[index % storyOffsets.length].x, y: storyOffsets[index % storyOffsets.length].y }}
-                  transition={{ duration: 0.4, delay: 1.2 + (index * 0.1), ease: "easeOut" }}
-                >
-                  <div className="absolute bottom-0 left-0 right-0 h-0 bg-black group-hover:h-full transition-all duration-500 ease-in-out rounded-full" />
-                  <span className="relative z-10 transition-opacity duration-200 group-hover:opacity-0">{story.title}</span>
-                  <span className="absolute inset-0 flex items-center justify-center z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-300">
-                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </span>
-                </motion.button>
-              ))}
+              {stories.map((story, index) => {
+                const isPressed = pressedButton === story.id;
+                return (
+                  <motion.button
+                    key={story.id}
+                    onClick={() => handleStoryClick(story.id)}
+                    className="rounded-full bg-white/70 text-black flex items-center justify-center cursor-pointer group relative overflow-hidden border border-black/20 group-hover:text-white"
+                    style={{
+                      width: storySizes[index % storySizes.length],
+                      height: storySizes[index % storySizes.length],
+                      padding: '14px',
+                      fontFamily: 'Chillax',
+                      fontSize: '16px',
+                      lineHeight: '1.3',
+                      textAlign: 'center',
+                    }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1, x: storyOffsets[index % storyOffsets.length].x, y: storyOffsets[index % storyOffsets.length].y }}
+                    transition={{ duration: 0.4, delay: 1.2 + (index * 0.1), ease: "easeOut" }}
+                  >
+                    <div className={`absolute bottom-0 left-0 right-0 bg-black transition-all duration-500 ease-in-out rounded-full ${isPressed ? 'h-full' : 'h-0 group-hover:h-full'}`} />
+                    <span className={`relative z-10 transition-opacity duration-200 ${isPressed ? 'opacity-0' : 'group-hover:opacity-0'}`}>{story.title}</span>
+                    <span className={`absolute inset-0 flex items-center justify-center z-10 transition-opacity duration-300 ${isPressed ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 delay-300'}`}>
+                      <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      </svg>
+                    </span>
+                  </motion.button>
+                );
+              })}
             </div>
           </motion.div>
         )}
