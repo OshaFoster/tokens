@@ -665,7 +665,10 @@ export default function Home() {
               style={{
                 height: '100%',
                 alignContent: 'space-evenly',
-                padding: `0 32px calc(80px + env(safe-area-inset-bottom, 0px))`,
+                paddingLeft: '32px',
+                paddingRight: '32px',
+                paddingTop: '0',
+                paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
                 margin: '0 auto',
               }}
             >
