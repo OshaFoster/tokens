@@ -96,6 +96,7 @@ export default function Home() {
     }))
   ), []);
   const [tokenSizeFactor, setTokenSizeFactor] = useState(1);
+  const [isMobileView, setIsMobileView] = useState(false);
   const [activeStory, setActiveStory] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -119,7 +120,10 @@ export default function Home() {
 
   // Scale down story tokens on mobile
   useEffect(() => {
-    if (window.innerWidth < 768) setTokenSizeFactor(0.82);
+    if (window.innerWidth < 768) {
+      setTokenSizeFactor(0.82);
+      setIsMobileView(true);
+    }
   }, []);
 
   // Measure header bottom to position story grid dynamically
@@ -334,17 +338,19 @@ export default function Home() {
   }, [syncMeasurementContainer]);
 
   const handleStoryClick = (storyId) => {
-    if (showDonate) {
+    if (showDonate && window.innerWidth < 768) {
       setShowDonate(false);
       setAnimateDonate(false);
     }
     setPressedButton(storyId);
     setPaginatedPages([]);
 
+    const isMobile = window.innerWidth < 768;
+
     // Let button fill complete (500ms), then start background transition
     setTimeout(() => {
       setIsTransitioning(true);
-    }, 850);
+    }, isMobile ? 850 : 350);
 
     // Show modal after fill + background transition — push URL here so pathname effect doesn't fire early
     setTimeout(() => {
@@ -354,7 +360,7 @@ export default function Home() {
       setActiveStory(storyId);
       setCurrentPage(0);
       setPressedButton(null);
-    }, 2500);
+    }, isMobile ? 1700 : 900);
   };
 
   const handleClose = () => {
@@ -720,9 +726,12 @@ export default function Home() {
 
       {/* Story view */}
       {activeStory && (
-        <div className={`fixed inset-0 flex items-center justify-center px-6 py-6 md:px-8 md:py-4 transition-opacity duration-700 pointer-events-none ${
-          activeStory ? 'opacity-100' : 'opacity-0'
-        }`}>
+        <motion.div
+          className="fixed inset-0 flex items-center justify-center px-6 py-6 md:px-8 md:py-4 pointer-events-none"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: isMobileView ? 0.7 : 0, ease: 'easeIn' }}
+        >
           {/* White floating circles for story view */}
           <div className="fixed inset-0 pointer-events-none overflow-hidden">
             {Array.from({ length: 3 }).map((_, i) => (
@@ -831,7 +840,7 @@ export default function Home() {
               );
             })()}
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Donate button - desktop */}
