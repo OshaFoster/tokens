@@ -337,14 +337,14 @@ export default function Home() {
     // Let button fill complete (500ms), then start background transition
     setTimeout(() => {
       setIsTransitioning(true);
-    }, 650);
+    }, 850);
 
     // Show modal after fill (500ms) + background transition (700ms) + buffer
     setTimeout(() => {
       setActiveStory(storyId);
       setCurrentPage(0);
       setPressedButton(null);
-    }, 1450);
+    }, 1650);
   };
 
   const handleClose = () => {
