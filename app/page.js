@@ -808,26 +808,6 @@ export default function Home() {
                         {currentPage === paginatedPages.length - 1 ? '↻ Start' : 'Next →'}
                       </button>
                     </div>
-                    <div className="mt-4 md:hidden">
-                      <button
-                        type="button"
-                        className={`w-full rounded-full py-3 px-6 shadow-lg transition-colors ${
-                          activeStory
-                            ? 'bg-white text-black border border-white/60'
-                            : 'bg-black text-white border border-black'
-                        } flex items-center justify-center gap-2`}
-                        style={{ fontFamily: 'Chillax' }}
-                        onClick={() => {
-                          if (!showDonate) {
-                            setShowDonate(true);
-                            setTimeout(() => setAnimateDonate(true), 10);
-                          }
-                        }}
-                      >
-                        <span className="text-base font-medium">donate</span>
-                        <span className="text-sm font-medium" aria-hidden="true">$</span>
-                      </button>
-                    </div>
                   </div>
                 </>
               );
@@ -895,32 +875,42 @@ export default function Home() {
 
       {/* Donate button - mobile (home view) */}
       {!activeStory && (
-        <motion.button
-          type="button"
-          className={`md:hidden fixed inset-x-4 z-50 ${
-            showDonate ? 'pointer-events-none' : 'pointer-events-auto'
-          }`}
-          style={{
-            bottom: mobileDonateButtonBottom
-          }}
+        <motion.div
+          className="md:hidden fixed z-50 cursor-pointer"
+          style={{ bottom: mobileDonateButtonBottom, right: '1rem' }}
           onClick={() => {
             if (!showDonate) {
               setShowDonate(true);
               setTimeout(() => setAnimateDonate(true), 10);
             }
           }}
-          initial={{ opacity: 0, translateY: 16 }}
-          animate={{ opacity: showDonate ? 0 : 1, translateY: showDonate ? 16 : 0 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, delay: 1.8, ease: 'easeOut' }}
         >
-          <div
-            className="relative flex items-center justify-center gap-2 rounded-full py-3 px-6 shadow-lg transition-colors bg-black text-white border border-black"
-            style={{ fontFamily: 'Chillax' }}
-          >
-            <span className="text-base font-medium">donate</span>
-            <span className="text-sm font-medium" aria-hidden="true">$</span>
+          <div className="relative w-[50px] h-[50px]">
+            {/* Dollar circle */}
+            <div className={`absolute inset-0 rounded-full flex items-center justify-center transition-all duration-300 ${
+              showDonate ? 'opacity-0 pointer-events-none' : 'opacity-100'
+            }`} style={{ backgroundColor: 'black' }}>
+              <span className="text-white text-lg leading-none">$</span>
+            </div>
+            {/* X circle */}
+            <div
+              className={`absolute inset-0 rounded-full flex items-center justify-center transition-all ${
+                showDonate ? 'opacity-100 duration-500 delay-200' : 'opacity-0 duration-300 pointer-events-none'
+              }`}
+              style={{ backgroundColor: 'black' }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowDonate(false);
+                setAnimateDonate(false);
+              }}
+            >
+              <span className="text-white text-lg leading-none">✕</span>
+            </div>
           </div>
-        </motion.button>
+        </motion.div>
       )}
 
       {/* Donate popup */}
